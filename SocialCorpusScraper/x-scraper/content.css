@@ -1,0 +1,127 @@
+#modal {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 10;
+    position: fixed;
+    display: none;
+}
+
+#scrape-frame {
+    border-radius: 10px;
+    background-color: white;
+    margin-top: 10%;
+    margin-left: 35%;
+    width: 30%;
+    height: 350px;
+    padding: 2%;
+    color: black;
+    font-family: 'Roboto', system-ui, sans-serif;
+    font-weight: bold;
+    font-size: large;
+    text-align: center;
+}
+
+#title-div {
+    margin-top: 10%;
+    margin-bottom: 5%;
+    font-size: x-large;
+}
+
+#scrape-ui-container {
+    margin: 1em;
+    font-weight: normal;
+    font-size: small;
+    text-align: center;
+}
+
+input#max-tweets-input {
+    border: none;
+    background-color: #f2f2f2;
+    color: #041f4a;
+    margin: 1em;
+    border-radius: 4px;
+    height: 32px;
+    width: 8em;
+    padding-left: 1em;
+    display: inline-block;
+}
+
+input#max-tweets-input:focus-visible {
+    outline: solid 0.5px gray;
+}
+
+button,
+select {
+    border: 1px solid;
+    border-color: #e0e0e0;
+    border-radius: 4px;
+    height: 32px;
+    width: auto;
+    color: #4285f4;
+    border-color: #4285f4;
+    background-color: white;
+    text-align: center;
+    font-weight: 500;
+    font-family: system-ui, sans-serif;
+    margin: 1em;
+    display: inline-block;
+}
+
+select:focus-visible,
+button:focus-visible {
+    outline: none;
+}
+
+button:hover,
+select:hover {
+    border-color: #bbdefb;
+    background-color: rgba(33, 150, 243, 0.04);
+    cursor: pointer;
+}
+
+button:active {
+    border: 2px solid;
+}
+
+#stop-button {
+    color: #ff0000;
+    border-color: #ff0000;
+    display: none;
+}
+
+#stop-button:hover {
+    border-color: #ff8080;
+    background-color: #ffe6e6;
+    cursor: pointer;
+}
+
+#reset-div {
+    margin-top: 5%;
+    display: none;
+}
+
+#close-button {
+    float: right;
+    color: #ff0000;
+    cursor: pointer;
+    font-size: larger;
+    font-weight: bold;
+    border: none;
+    background: none;
+}
+#close-button:hover, #close-button:focus {
+    color: #ff6666;
+}
+
+#download-div {
+    margin-top: 5%;
+}
+
+#dl-result {
+    height: 1em;
+}
+
+#download-button {
+    display: none;
+}

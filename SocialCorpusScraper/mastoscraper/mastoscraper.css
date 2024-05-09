@@ -1,0 +1,218 @@
+html {
+    border: none;
+    border-radius: 10px;
+    width: auto;
+}
+
+body {
+    margin-left: 10%;
+    color: #17063B;
+    background-color: white;
+    text-align: center;
+    font-family: 'mastodon-font-sans-serif', system-ui, sans-serif;
+    font-size: small;
+    width: 500px;
+    height: auto;
+    padding: 10px;
+}
+
+div#version-div {
+    font-size: x-small;
+}
+
+div#instructions {
+    color: #2F0C7A;
+    font-weight: bold;
+    text-decoration: underline;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+div#instructions:hover {
+    color: #563ACC;
+}
+
+div#instructions-container {
+    background-color: #e7e8fe;
+    color: #2F0C7A;
+    padding: 5px; 
+    margin-bottom: 10px;
+}
+
+button.masto-scraper,
+select.masto-scraper {
+    color: #2F0C7A;
+    border: solid 1px #2F0C7A;
+    background-color: white;
+    height: 32px;
+    width: 100px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 5px;
+    text-align: center;
+}
+
+button#abort-btn {
+    color: #e60000;
+    border-color: #e60000;
+    display: none;
+}
+
+button#abort-btn:hover {
+    border-color: #ff8080;
+    background-color: #ffe6e6;
+}
+
+button#reset-auth {
+    width: auto;
+    color: #e60000;
+    border-color: #e60000;
+    margin: 5px;
+}
+
+button#reset-auth:hover {
+    border-color: #ff8080;
+    background-color: #ffe6e6;
+}
+
+button#extract-btn,
+button#abort-btn,
+button#dl-btn,
+button#reset-btn,
+button#get-code-btn,
+button#auth-btn {
+    margin: 5px auto;
+}
+
+button#dl-btn {
+    width: auto;
+}
+
+button.masto-scraper:hover,
+select.masto-scraper:hover {
+    background-color: #e7e8fe;
+}
+
+.masto-spinner {
+  border: 2px solid #e7e8fe;
+  border-left: 2px solid #2F0C7A;
+  border-radius: 50%;
+  width: 12px;
+  height: 12px;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 5px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+div.fold {
+    width: 500px;
+    text-align: left;
+    padding-top: 5px;
+    padding-left: 1em;
+    padding-right: 1em;
+    height: 2em;
+    background-color: #e7e8fe;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    margin: auto;
+}
+
+div.fold
+ {
+    margin-bottom: 1em;
+}
+
+div#auth-fold::after,
+div#search-fold::after {
+    content: '—';
+    float: right;
+}
+
+div#auth-unfold::after,
+div#search-unfold::after {
+    content: '+';
+    float: right;
+}
+
+div#auth-container {
+    border: 1px solid #2F0C7A;
+    border-radius: 4px;
+    margin: 1em auto 1em;
+    padding: 1em;
+    width: 500px;
+}
+
+div#all-done {
+    color: #006600;
+    font-weight: bold;
+    margin: 5px;
+}
+
+button#reset-auth {
+    margin-top: 10px;
+}
+
+label {
+    display: block;
+}
+
+input.masto-scraper {
+    height: 32px;
+    width: 300px;
+    padding-left: 5px;
+    border-radius: 4px;
+    margin: 5px;
+    border: solid 1px #2F0C7A;
+    display: inline-block;
+}
+
+input.masto-scraper:focus-visible {
+    outline: solid 2px #2F0C7A;
+}
+
+input#token-input {
+    display: inline-block;
+}
+
+input#max-toots {
+    width: 50px;
+}
+
+div#notice {
+    width: 512px;
+    color: #E66300;
+    border: 2px solid #E66300;
+    border-radius: 4px;
+    background-color: #FFF099;
+    padding: 5px;
+    display: block;
+    position: absolute;
+    bottom: 5%;
+}
+
+a {
+    color: #17063B;
+    font-weight: bold;
+}
+
+a:hover {
+    color: #2F0C7A
+}
+
+a.notice {
+    color: inherit;
+    font-weight: bold;
+}
+
+p#dismiss {
+    font-weight: bold;
+    text-decoration: underline;
+    cursor: pointer;
+}

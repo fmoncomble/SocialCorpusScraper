@@ -1,0 +1,39 @@
+{
+    "manifest_version": 2,
+    "name": "SocialCorpusScraper",
+    "version": "0.1",
+    "description": "A browser extension to scrape social media posts",
+    "homepage_url": "https://fmoncomble.github.io/socialcorpusscraper/",
+    "permissions": ["activeTab", "tabs", "storage", "clipboardWrite", "<all_urls>"],
+    "content_scripts": [
+        {
+            "matches": ["*://twitter.com/*"],
+            "js": ["x-scraper/content.js"],
+            "css": ["x-scraper/content.css"]
+        },
+        {
+            "matches": ["*://www.reddit.com/prefs/apps"],
+            "js": ["redditscraper/app_content.js"],
+            "css": ["redditscraper/app_content.css"]
+        },
+        {
+            "matches": ["*://*/settings/applications/*"],
+            "js": ["mastoscraper/app_content.js"],
+            "css": ["mastoscraper/app_content.css"]
+        }
+    ],
+    "icons": {
+        "48": "icons/icon-48.png",
+        "96": "icons/icon-96.png"
+    },
+    "browser_action": {
+        "default_popup": "popup.html",
+        "default_icon": "icons/icon-32.png"
+    },
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "{a22625cf-9f51-4bfc-83aa-0525acdf3c38}",
+            "update_url": "https://github.com/fmoncomble/socialcorpusscraper/releases/latest/download/update_manifest.json"
+        }
+    }
+}

@@ -1,0 +1,242 @@
+html {
+    border: none;
+    border-radius: 10px;
+    width: auto;
+}
+
+body {
+    margin-left: 10%;
+    color: black;
+    background-color: white;
+    text-align: center;
+    font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol',sans-serif;
+    font-size: small;
+    width: 500px;
+    height: auto;
+    padding: 10px;
+}
+
+div#version-div {
+    font-size: x-small;
+}
+
+div#instructions {
+    color: #ff4500;
+    font-weight: bold;
+    text-decoration: underline;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+div#instructions:hover {
+    color: #ff6933;
+}
+
+div#instructions-container {
+    background-color: #ffece6;
+    color: black;
+    padding: 5px;
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+button.reddit-scraper,
+select.reddit-scraper {
+    color: #ff4500;
+    border: solid 1px #ff4500;
+    background-color: white;
+    height: 32px;
+    width: 100px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 5px;
+    text-align: center;
+}
+
+select#time-range,
+select#sort-by,
+select#type {
+    width: 120px;
+}
+
+select#output-format {
+    width: 107px;
+}
+
+label.reddit-scraper {
+    width: 72px;
+    text-align: right;
+    display: inline-block;
+}
+
+button#abort-btn {
+    color: #e60000;
+    border-color: #e60000;
+    display: none;
+}
+
+button#abort-btn:hover {
+    border-color: #ff8080;
+    background-color: #ffe6e6;
+}
+
+button#reset-auth {
+    width: auto;
+    color: #e60000;
+    border-color: #e60000;
+    margin: 5px;
+}
+
+button#reset-auth:hover {
+    border-color: #ff8080;
+    background-color: #ffe6e6;
+}
+
+button#extract-btn,
+button#abort-btn,
+button#dl-btn,
+button#reset-btn,
+button#get-code-btn,
+button#auth-btn {
+    margin: 5px auto;
+}
+
+button#dl-btn {
+    width: auto;
+}
+
+button.reddit-scraper:hover,
+select.reddit-scraper:hover {
+    background-color: #ffece6;
+}
+
+.reddit-spinner {
+    border: 2px solid #ffece6;
+    border-left: 2px solid #ff4500;
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 5px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+div.fold {
+    width: 500px;
+    text-align: left;
+    padding-top: 5px;
+    padding-left: 1em;
+    padding-right: 1em;
+    height: 2em;
+    background-color: #ffece6;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    margin: auto;
+}
+
+div.fold {
+    margin-bottom: 1em;
+}
+
+div#auth-fold::after,
+div#search-fold::after {
+    content: '—';
+    float: right;
+}
+
+div#auth-unfold::after,
+div#search-unfold::after {
+    content: '+';
+    float: right;
+}
+
+div#auth-container {
+    border: 1px solid #ff4500;
+    border-radius: 4px;
+    margin: 1em auto 1em;
+    padding: 1em;
+    width: 500px;
+}
+
+div#all-done {
+    color: #006600;
+    font-weight: bold;
+    margin: 5px;
+}
+
+button#reset-auth {
+    margin-top: 10px;
+}
+
+label {
+    display: block;
+}
+
+input.reddit-scraper {
+    height: 32px;
+    width: 300px;
+    padding-left: 5px;
+    border-radius: 4px;
+    margin: 5px;
+    border: solid 1px #ff4500;
+    display: inline-block;
+}
+
+input.reddit-scraper:focus-visible {
+    outline: solid 2px #ff4500;
+}
+
+input#token-input {
+    display: inline-block;
+}
+
+input#max-results {
+    width: 98px;
+}
+
+.extract-options {
+    width: 140px !important;
+}
+
+div#notice {
+    width: 512px;
+    color: #e66300;
+    border: 2px solid #e66300;
+    border-radius: 4px;
+    background-color: #fff099;
+    padding: 5px;
+    display: block;
+    position: absolute;
+    bottom: 5%;
+}
+
+a {
+    color: black;
+    font-weight: bold;
+}
+
+a:hover {
+    color: gray;
+}
+
+a.notice {
+    color: inherit;
+    font-weight: bold;
+}
+
+p#dismiss {
+    font-weight: bold;
+    text-decoration: underline;
+    cursor: pointer;
+}
