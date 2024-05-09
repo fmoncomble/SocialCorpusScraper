@@ -1,6 +1,6 @@
 [(English version)](https://fmoncomble.github.io/SocialCorpusScraper)
 
-Une extension pour extraire et télécharger des posts Bluesky à des fins de fouille textuelle.  
+Une extension pour extraire et télécharger des posts de réseaux sociaux à des fins de fouille textuelle.  
   
 ### Citer ce programme
 Si vous utilisez cette extension pour votre recherche, veuillez la référencer comme suit :  
