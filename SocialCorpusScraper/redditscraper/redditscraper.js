@@ -793,7 +793,8 @@ document.addEventListener('DOMContentLoaded', async function () {
                     },
                 });
                 if (userToken && response.status === 401) {
-                    renewToken();
+                    await renewToken();
+                    processPage();
                 } else if (response.status === 401) {
                     window.alert(
                         'Application not authorized: please authenticate with Reddit'
