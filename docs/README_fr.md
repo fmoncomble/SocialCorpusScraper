@@ -16,6 +16,8 @@ Moncomble, F. (2024). *SocialCorpusScraper* (Version 0.1) [JavaScript]. Arras, F
 [![available-chrome-web-store4321](https://github.com/fmoncomble/SocialCorpusScraper/assets/59739627/e497b504-5836-4acd-a283-96f53366d290)](https://chromewebstore.google.com/detail/socialcorpusscraper/jpanohhfhmkaglopgghkdfdbkgliemoc)
   
 N'oubliez pas d'épingler l'extension à la barre d'outils.
+
+⚠️ Si vous avez déjà installé un ou plusieurs de 4 modules, il est préférable de les désactiver ou désinstaller pour éviter tout conflit.
  
 ## Mode d'emploi
 - Cliquez sur l'icône de l'extension dans la barre d'outils.
