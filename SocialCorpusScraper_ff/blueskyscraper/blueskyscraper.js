@@ -40,47 +40,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     const dlContainer = document.getElementById('dl-container');
     const dlBtn = document.getElementById('dl-btn');
     const resetBtn = document.getElementById('reset-btn');
-    // const notice = document.getElementById('notice');
-    // const dismissBtn = document.getElementById('dismiss');
 
-    // let understand;
     let userToken;
     let refreshToken;
     userToken = await retrieveCredential('blueskyusertoken');
     refreshToken = await retrieveCredential('blueskyrefreshtoken');
-
-    // Manage notice
-    // getUnderstand(function (understandResult) {
-    //     understand = understandResult;
-    //     if (userToken && understand) {
-    //         notice.style.display = 'none';
-    //     } else {
-    //         notice.style.display = 'block';
-    //     }
-    // });
-
-    // function getUnderstand(callback) {
-    //     chrome.storage.local.get(['understand'], function (result) {
-    //         const understand = result.understand || '';
-    //         callback(understand);
-    //     });
-    // }
-
-    // async function saveUnderstand() {
-    //     chrome.storage.local.set({ understand: 'understand' }, function () {
-    //         notice.style.display = 'none';
-    //     });
-    // }
-
-    // async function removeUnderstand() {
-    //     chrome.storage.local.remove('understand', function () {
-    //         notice.style.display = 'block';
-    //     });
-    // }
-
-    // dismissBtn.addEventListener('click', () => {
-    //     saveUnderstand();
-    // });
 
     // Assign role to Authentication header
     authFold.addEventListener('click', () => {
@@ -119,7 +83,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     let idPlaceholder = 'Enter your Bluesky ID (ex. handle.bsky.social)';
     let passwordPlaceholder = 'Enter your Bluesky password';
 
-    // Store app ID
+    // Store ID
     idInput.addEventListener('keydown', async (e) => {
         if (e.key === 'Enter') {
             saveCredential(idInput, idCred, idSaveBtn, idPlaceholder);
@@ -166,7 +130,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             passwordSaveBtn,
             passwordPlaceholder
         );
-        // removeUnderstand();
         idContainer.style.display = 'block';
         passwordContainer.style.display = 'block';
         authBtnContainer.style.display = 'block';
@@ -371,7 +334,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         queryUrl = 'https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?';
         
         // Concatenate query URL from search elements
-        let keywords = keywordsInput.value.replaceAll(' ', ' AND ');
+        let keywords = keywordsInput.value;
         let thisPhrase = thisPhraseInput.value;
         let since = sinceInput.value;
         let until = untilInput.value;
@@ -385,9 +348,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             queryUrl = queryUrl + keywords;
         }
         if (thisPhrase) {
-            if (keywords) {
-                queryUrl = queryUrl + ' AND ';
-            }
             queryUrl = queryUrl + '"' + thisPhrase + '"';
         }
         if (since) {
@@ -415,14 +375,13 @@ document.addEventListener('DOMContentLoaded', async function () {
             queryUrl = queryUrl + '&sort=' + sortBy;
         }
         queryUrl = encodeURI(queryUrl);
+        console.log('Query URL = ', queryUrl);
 
         // Fetch query response from server
         try {
             if (!keywords && !thisPhrase) {
                 window.alert('Please provide keywords');
                 searchMsg.style.display = 'none';
-                queryUrl =
-                    'https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?';
                 return;
             }
             userToken = await retrieveCredential('blueskyusertoken');
@@ -441,15 +400,11 @@ document.addEventListener('DOMContentLoaded', async function () {
                 authContainer.style.display = 'block';
                 authFold.style.display = 'block';
                 authUnfold.style.display = 'none';
-                queryUrl =
-                    'https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?';
                 throw new Error('User needs to authorize app');
             } else if (!response || !response.ok) {
                 window.alert(
                     `Error fetching results: status ${response.status}`
                 );
-                queryUrl =
-                    'https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?';
                 searchMsg.style.display = 'none';
                 throw new Error('Could not fetch search results.');
             }
@@ -458,8 +413,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             if (searchResults.length == 0) {
                 searchMsg.style.display = 'none';
                 noResult.style.display = 'block';
-                queryUrl =
-                    'https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?';
             } else {
                 searchMsg.style.display = 'none';
                 searchContainer.style.display = 'none';
@@ -669,13 +622,14 @@ ${text}
 </result>
 <lb></lb><lb></lb>`;
                     } else if (fileFormat === 'txt') {
-                        file = file + `\n\n${text}`;
+                        file = file + `\n\n${text}\n————`;
                     } else if (fileFormat === 'json') {
                         text = text.replaceAll('\n', ' ');
                         file[id] = {
                             username: `${username}`,
                             date: `${date}`,
                             time: `${time}`,
+                            url: `${url}`,
                             text: `${text}`,
                         };
                     } else if (fileFormat === 'csv') {

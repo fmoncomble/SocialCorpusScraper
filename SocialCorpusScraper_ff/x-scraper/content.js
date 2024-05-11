@@ -265,15 +265,17 @@ function scrape() {
                         );
                         let userName = userNameContainer.textContent.normalize('NFC');
                         console.log('User name = ', userName);
-                        let time = element[index]
+                        let date = element[index]
                             .querySelector('time')
                             .getAttribute('datetime');
 
-                        let tweetId = `${userName}-${time}`;
+                        let tweetId = `${userName}-${date}`;
                         console.log('Tweet ID = ', tweetId);
 
-                        time = time.split('T')[0];
-                        console.log('Tweet time = ', time);
+                        let dateElements = date.split('T');
+                        date = dateElements[0];
+                        time = dateElements[1].split('.')[0];
+                        console.log('Tweet date & time = ', date + ' ' + time);
 
                         let rawUserName = userName.split('@')[1];
                         let tweetUrlContainer = userNameContainers.find((e) =>
@@ -303,7 +305,7 @@ function scrape() {
                                 file =
                                     file +
                                     `
-<tweet username="${userName}" time="${time}">
+<tweet username="${userName}" date="${date}" time="${time}">
 <ref target="${tweetUrl}">${tweetUrl}</ref><lb></lb>
 ${status}
 </tweet>
@@ -312,7 +314,9 @@ ${status}
                             } else if (fileFormat === 'json') {
                                 file[tweetId] = {
                                     username: `${userName}`,
-                                    date: `${time}`,
+                                    date: `${date}`,
+                                    time: `${time}`,
+                                    url: `${tweetUrl}`,
                                     status: `${status}`,
                                 };
                             } else if (fileFormat === 'txt') {
@@ -323,7 +327,7 @@ ${status}
 `;
                             } else if (fileFormat === 'csv') {
                                 status = status.replaceAll('\n', ' ');
-                                csvData.push({ userName, time, status });
+                                csvData.push({ userName, date, time, tweetUrl, status });
                             }
                             tweetCount++;
                             console.log('Tweet count = ', tweetCount);
