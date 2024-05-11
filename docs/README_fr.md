@@ -15,14 +15,7 @@ Moncomble, F. (2024). *SocialCorpusScraper* (Version 0.1) [JavaScript]. Arras, F
 N'oubliez pas d'épingler l'extension à la barre d'outils.
 
 ### Chrome/Edge
-En attendant la disponibilité sur le Chrome WebStore, vous pouvez tester l'extension en l'installant en mode développeur :
-- [Téléchargez l'archive .zip](https://github.com/fmoncomble/SocialCorpusScraper/releases/latest/download/SocialCorpusScraper.zip)
-- Décompressez l'archive
-- Ouvrez le gestionnaire d'extensions : `chrome://extensions` ou `edge://extensions`
-  - Activez le « mode développeur »
-  - Cliquez sur « charger l'extension non empaquetée »
-  - Sélectionnez le dossier décompressé
-- Épinglez l'extension à la barre d'outils
+[![available-chrome-web-store4321](https://github.com/fmoncomble/SocialCorpusScraper/assets/59739627/e497b504-5836-4acd-a283-96f53366d290)](https://chromewebstore.google.com/detail/socialcorpusscraper/jpanohhfhmkaglopgghkdfdbkgliemoc)
  
 ## Mode d'emploi
 - Cliquez sur l'icône de l'extension dans la barre d'outils.
