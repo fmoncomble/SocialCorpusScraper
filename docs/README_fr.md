@@ -11,11 +11,11 @@ Moncomble, F. (2024). *SocialCorpusScraper* (Version 0.1) [JavaScript]. Arras, F
 ## Installation
 ### Firefox
 [ ![Firefox add-on](https://github.com/fmoncomble/Figaro_extractor/assets/59739627/e4df008e-1aac-46be-a216-e6304a65ba97)](https://github.com/fmoncomble/SocialCorpusScraper/releases/latest/download/SocialCorpusScraper.xpi)  
-  
-N'oubliez pas d'épingler l'extension à la barre d'outils.
 
 ### Chrome/Edge
 [![available-chrome-web-store4321](https://github.com/fmoncomble/SocialCorpusScraper/assets/59739627/e497b504-5836-4acd-a283-96f53366d290)](https://chromewebstore.google.com/detail/socialcorpusscraper/jpanohhfhmkaglopgghkdfdbkgliemoc)
+  
+N'oubliez pas d'épingler l'extension à la barre d'outils.
  
 ## Mode d'emploi
 - Cliquez sur l'icône de l'extension dans la barre d'outils.
