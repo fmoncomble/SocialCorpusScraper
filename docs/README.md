@@ -12,14 +12,8 @@ Moncomble, F. (2024). *SocialCorpusScraper* (Version 0.1) [JavaScript]. Arras, F
 ### Firefox
 [![Firefox add-on](https://github.com/fmoncomble/Figaro_extractor/assets/59739627/e4df008e-1aac-46be-a216-e6304a65ba97)](https://github.com/fmoncomble/SocialCorpusScraper/releases/latest/download/SocialCorpusScraper.xpi)  
 ### Chrome/Edge
-Publication on the Chrome Webstore pending.  
-In the meantime, you can test the add-on in developer mode:
-- [Download the .zip archive](https://github.com/fmoncomble/SocialCorpusScraper/releases/latest/download/SocialCorpusScraper.zip)
-- Expand the archive
-- Open the add-on manager: `chrome://extensions` ou `edge://extensions`
-  - Enable "Developer mode"
-  - Click "Load unpacked"
-  - Select the expanded folder
+[![available-chrome-web-store4321](https://github.com/fmoncomble/SocialCorpusScraper/assets/59739627/e497b504-5836-4acd-a283-96f53366d290)](https://chromewebstore.google.com/detail/socialcorpusscraper/jpanohhfhmkaglopgghkdfdbkgliemoc)
+
     
 Remember to pin the add-on to the toolbar.
  
