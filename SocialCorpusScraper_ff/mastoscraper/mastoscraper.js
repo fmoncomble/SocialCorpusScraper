@@ -603,6 +603,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
         queryUrl = queryUrl + '&type=statuses&resolve=true';
         queryUrl = encodeURI(queryUrl);
+        console.log('Query URL: ', queryUrl);
 
         // Fetch query response from server
         try {
@@ -826,12 +827,12 @@ document.addEventListener('DOMContentLoaded', async function () {
 
                     username = s.account.acct;
 
-                    date = s.created_at;
-                    if (fromDate && date < fromDate) {
+                    datetime = s.created_at;
+                    if (fromDate && datetime < fromDate) {
                         abort = true;
                         break;
                     }
-                    if (toDate && date > toDate) {
+                    if (toDate && datetime > toDate) {
                         continue;
                     }
 
@@ -841,7 +842,8 @@ document.addEventListener('DOMContentLoaded', async function () {
                             continue;
                         }
                     }
-                    date = date.split('T')[0];
+                    date = datetime.split('T')[0];
+                    time = datetime.split('T')[1].split('.')[0];
                     let rawText = s.content;
                     let rawTextHtml = parser.parseFromString(
                         rawText,
@@ -884,22 +886,24 @@ document.addEventListener('DOMContentLoaded', async function () {
                         file =
                             file +
                             `<lb></lb><lb></lb>
-<toot id="${id}" username="${username}" date="${date}"><lb></lb>
+<toot id="${id}" username="${username}" date="${date}" time="${time}"><lb></lb>
 <ref target="${url}">${url}</ref><lb></lb><lb></lb>
 ${text}
 </toot>
 <lb></lb><lb></lb>`;
                     } else if (fileFormat === 'txt') {
-                        file = file + `\n\n${text}`;
+                        file = file + `\n\n${text}\n\n——————`;
                     } else if (fileFormat === 'json') {
                         file[id] = {
                             username: `${username}`,
                             date: `${date}`,
+                            time: `${time}`,
+                            url: `${url}`,
                             text: `${text}`,
                         };
                     } else if (fileFormat === 'csv') {
                         text = text.replaceAll('\n', ' ');
-                        csvData.push({ username, date, text });
+                        csvData.push({ username, date, time, url, text });
                     }
                     if (maxToots !== Infinity) {
                         let tootPercent = Math.round(
