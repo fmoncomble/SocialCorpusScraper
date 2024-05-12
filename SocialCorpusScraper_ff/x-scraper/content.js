@@ -9,7 +9,6 @@ let csvData;
 
 const modal = document.createElement('div');
 modal.setAttribute('id', 'modal');
-console.log('Modal injected: ', modal);
 document.body.before(modal);
 
 const scrapeFrame = document.createElement('div');
@@ -43,7 +42,6 @@ scrapeUIContainer.appendChild(maxTweetsInput);
 let maxTweets;
 maxTweetsInput.addEventListener('change', () => {
     maxTweets = maxTweetsInput.value;
-    console.log('Max tweets = ', maxTweets);
 });
 
 const formatDiv = document.createElement('div');
@@ -56,10 +54,12 @@ formatSelect.setAttribute('name', 'format-select');
 const xml = new Option('XML/XTZ', 'xml');
 const txt = new Option('TXT', 'txt');
 const csv = new Option('CSV', 'csv');
+const xlsx = new Option('XLSX', 'xlsx');
 const json = new Option('JSON', 'json');
 formatSelect.appendChild(xml);
 formatSelect.appendChild(txt);
 formatSelect.appendChild(csv);
+formatSelect.appendChild(xlsx);
 formatSelect.appendChild(json);
 const formatSelectLabel = document.createElement('label');
 formatSelectLabel.setAttribute('for', 'format-select');
@@ -121,7 +121,6 @@ function resetInterface() {
     resetMsg.textContent =
         'You can also resume or click "Reset" to start afresh';
     resumeButton.style.display = 'inline-block';
-    console.log('Interface reset');
 }
 
 window.onclick = function (event) {
@@ -144,7 +143,6 @@ document.addEventListener('keydown', (event) => {
 formatSelect.addEventListener('change', () => {
     fileFormat = formatSelect.value;
     downloadButton.textContent = `Download ${fileFormat.toUpperCase()}`;
-    console.log('File format = ', fileFormat);
 });
 
 const downloadDiv = document.createElement('div');
@@ -162,7 +160,6 @@ downloadDiv.appendChild(downloadResult);
 scrapeUIContainer.appendChild(resetDiv);
 
 downloadButton.addEventListener('click', () => {
-    console.log('Download initiated');
     download();
     resumeButton.style.display = 'none';
     resetMsg.textContent = 'Click "Reset" to start afresh';
@@ -187,12 +184,10 @@ async function triggerScrape() {
     scrapeButton.style.display = 'none';
     downloadButton.style.display = 'none';
     try {
-        console.log('Scraping function initiated');
 
         if (!maxTweets) {
             maxTweets = Infinity;
         }
-        console.log('Max tweets = ', maxTweets);
         await scrape();
         stopButton.style.display = 'none';
         formatDiv.style.display = 'none';
@@ -206,7 +201,6 @@ async function triggerScrape() {
 }
 
 function scrape() {
-    console.log('File format = ', fileFormat);
     tweetSet = new Set();
     if (fileFormat === 'xml') {
         file = `<Text>`;
@@ -216,6 +210,11 @@ function scrape() {
         file = '';
     } else if (fileFormat === 'csv') {
         csvData = [];
+    } else if (fileFormat === 'xlsx') {
+        file = XLSX.utils.book_new();
+        sheet = XLSX.utils.aoa_to_sheet([
+            ['Username', 'Date', 'Time', 'URL', 'Text'],
+        ]);
     }
 
     abort = false;
@@ -237,16 +236,11 @@ function scrape() {
                             `
 </Text>`;
                     }
-                    if (tweetCount > maxTweets) {
-                        console.log('Max tweets exceeded');
-                    }
-                    console.log(tweetCount + ' tweet(s) scraped');
                     processContainer.textContent =
                         tweetCount + ' tweet(s) scraped';
                     resolve(tweetCount);
                     return;
                 }
-                console.log('Scrolling x ' + i);
                 scrollPosition += scrollStep;
                 window.scrollTo(0, scrollPosition);
                 let element = document.querySelectorAll('article');
@@ -264,18 +258,15 @@ function scrape() {
                             e.textContent.startsWith('@')
                         );
                         let userName = userNameContainer.textContent.normalize('NFC');
-                        console.log('User name = ', userName);
                         let date = element[index]
                             .querySelector('time')
                             .getAttribute('datetime');
 
                         let tweetId = `${userName}-${date}`;
-                        console.log('Tweet ID = ', tweetId);
 
                         let dateElements = date.split('T');
                         date = dateElements[0];
                         time = dateElements[1].split('.')[0];
-                        console.log('Tweet date & time = ', date + ' ' + time);
 
                         let rawUserName = userName.split('@')[1];
                         let tweetUrlContainer = userNameContainers.find((e) =>
@@ -292,7 +283,6 @@ function scrape() {
                             .textContent.replaceAll(/[\u201C\u201D]/g, '"')
                             .replaceAll(/[\u2018\u2019]/g, "'")
                             .normalize('NFC');
-                        console.log('Status = ', status);
 
                         if (!tweetSet.has(tweetId)) {
                             if (fileFormat === 'xml') {
@@ -312,6 +302,7 @@ ${status}
 <lb></lb>
 <lb></lb>`;
                             } else if (fileFormat === 'json') {
+                                status = status.replaceAll('\n', ' ');
                                 file[tweetId] = {
                                     username: `${userName}`,
                                     date: `${date}`,
@@ -324,26 +315,26 @@ ${status}
                                     file +
                                     `
 ${status}
+
+——————
 `;
                             } else if (fileFormat === 'csv') {
                                 status = status.replaceAll('\n', ' ');
                                 csvData.push({ userName, date, time, tweetUrl, status });
+                            } else if (fileFormat === 'xlsx') {
+                                status = status.replaceAll('\n', ' ');
+                                let row = [userName, date, time, tweetUrl, status];
+                                XLSX.utils.sheet_add_aoa(sheet, [row], { origin: -1 });
                             }
                             tweetCount++;
-                            console.log('Tweet count = ', tweetCount);
-                            console.log('Max tweets = ', maxTweets);
                             tweetSet.add(tweetId);
-                            console.log('Tweet set = ', tweetSet);
                             processContainer.textContent = `Scraping ${tweetCount} tweet(s)...`;
-                        } else {
-                            console.log('Skipping duplicate tweet: ', tweetId);
                         }
                     } catch (error) {
                         console.log(error);
                     }
                 }
                 if (tweetCount === maxTweets) {
-                    console.log('Max tweets reached');
                     resolve(tweetCount);
                     return;
                 }
@@ -364,7 +355,6 @@ ${status}
 }
 
 function download() {
-    console.log(`Downloading tweets as ${fileFormat} file`);
     if (fileFormat === 'xml') {
         var myBlob = new Blob([file], { type: 'application/xml' });
     } else if (fileFormat === 'json') {
@@ -380,13 +370,18 @@ function download() {
         }
         const csvString = convertToCsv(csvData);
         var myBlob = new Blob([csvString], { type: 'text/csv' });
+    } else if (fileFormat === 'xlsx') {
+        XLSX.utils.book_append_sheet(file, sheet, 'Tweets');
+        XLSX.writeFile(file, 'tweets.xlsx');
     }
-    var url = window.URL.createObjectURL(myBlob);
-    var anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `tweets.${fileFormat}`;
-    anchor.click();
-    window.URL.revokeObjectURL(url);
+    if (fileFormat !== 'xlsx') {
+        var url = window.URL.createObjectURL(myBlob);
+        var anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `tweets.${fileFormat}`;
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+    }
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

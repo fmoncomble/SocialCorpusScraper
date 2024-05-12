@@ -6,6 +6,7 @@
         <title>BlueskyScraper</title>
         <link rel="stylesheet" type="text/css" href="blueskyscraper.css" />
         <script src="blueskyscraper.js"></script>
+        <script src="../xlsx.full.min.js"></script>
     </head>
 
     <body>
@@ -15,7 +16,7 @@
                 width="300"
                 fill="currentColor"
             />
-            <div id="version-div">v0.1.1</div>
+            <div id="version-div">v0.2</div>
         </div>
         <br />
         <!-- Authentication container -->
@@ -34,7 +35,6 @@
                     type="text"
                     placeholder="Enter your Bluesky ID (ex. handle.bsky.social)"
                 />
-                <button id="id-save" class="bluesky-scraper">Save</button>
             </div>
             <div id="password-container">
                 <div>Enter your Bluesky password:</div>
@@ -44,7 +44,6 @@
                     type="password"
                     placeholder="Enter your Bluesky password"
                 />
-                <button id="password-save" class="bluesky-scraper">Save</button>
             </div>
             <div id="auth-btn-container" style="display: block">
                 <button name="auth-btn" id="auth-btn" class="bluesky-scraper">
@@ -177,6 +176,7 @@
                     <option value="xml">XML/XTZ</option>
                     <option value="txt">TXT</option>
                     <option value="csv">CSV</option>
+                    <option value="xlsx">XLSX</option>
                     <option value="json">JSON</option>
                 </select>
             </div>

@@ -1,4 +1,4 @@
-console.log('Mastocraper script loaded');
+console.log('BlueskyScraper script loaded');
 
 document.addEventListener('DOMContentLoaded', async function () {
     // Declare page elements
@@ -7,10 +7,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     const authUnfold = document.getElementById('auth-unfold');
     const idContainer = document.getElementById('id-container');
     const idInput = document.getElementById('id-input');
-    const idSaveBtn = document.getElementById('id-save');
     const passwordContainer = document.getElementById('password-container');
     const passwordInput = document.getElementById('password-input');
-    const passwordSaveBtn = document.getElementById('password-save');
     const allDone = document.getElementById('all-done');
     const authBtnContainer = document.getElementById('auth-btn-container');
     const authBtn = document.getElementById('auth-btn');
@@ -41,6 +39,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     const dlBtn = document.getElementById('dl-btn');
     const resetBtn = document.getElementById('reset-btn');
 
+    let clientID;
+    let clientSecret;
     let userToken;
     let refreshToken;
     userToken = await retrieveCredential('blueskyusertoken');
@@ -76,60 +76,22 @@ document.addEventListener('DOMContentLoaded', async function () {
         searchUnfold.style.display = 'none';
     });
 
-    // Store credentials
-    let idCred = 'bluesky_id';
-    let passwordCred = 'bluesky_password';
-
-    let idPlaceholder = 'Enter your Bluesky ID (ex. handle.bsky.social)';
-    let passwordPlaceholder = 'Enter your Bluesky password';
-
-    // Store ID
-    idInput.addEventListener('keydown', async (e) => {
-        if (e.key === 'Enter') {
-            saveCredential(idInput, idCred, idSaveBtn, idPlaceholder);
-            passwordInput.focus();
-        }
-    });
-    idSaveBtn.addEventListener('click', async () => {
-        saveCredential(idInput, idCred, idSaveBtn, idPlaceholder);
+    // Get ID and password
+    idInput.addEventListener('change', () => {
+        clientID = idInput.value;
         passwordInput.focus();
     });
 
-    // Store password
-    passwordInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            saveCredential(
-                passwordInput,
-                passwordCred,
-                passwordSaveBtn,
-                passwordPlaceholder
-            );
-            authBtn.focus();
-        }
-    });
-    passwordSaveBtn.addEventListener('click', () => {
-        saveCredential(
-            passwordInput,
-            passwordCred,
-            passwordSaveBtn,
-            passwordPlaceholder
-        );
+    passwordInput.addEventListener('change', () => {
+        clientSecret = passwordInput.value;
         authBtn.focus();
     });
-
-    let clientID = await retrieveCredential('bluesky_id');
-    let clientSecret = await retrieveCredential('bluesky_password');
 
     // Reset authentication button
     resetAuthBtn.addEventListener('click', async () => {
         await removeUserToken();
-        saveCredential(idInput, idCred, idSaveBtn, idPlaceholder);
-        saveCredential(
-            passwordInput,
-            passwordCred,
-            passwordSaveBtn,
-            passwordPlaceholder
-        );
+        idInput.value = '';
+        passwordInput.value = '';
         idContainer.style.display = 'block';
         passwordContainer.style.display = 'block';
         authBtnContainer.style.display = 'block';
@@ -139,34 +101,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         searchContainer.style.display = 'none';
         idInput.focus();
     });
-
-    // Functions to check for credentials
-    function getCredential(credType, callback) {
-        chrome.storage.local.get([credType], function (result) {
-            const credential = result[credType] || '';
-            callback(credential);
-        });
-    }
-
-    function handleCredential(credType, inputElement, buttonElement) {
-        getCredential(credType, function (credentialResult) {
-            let credential = credentialResult;
-            if (credential) {
-                inputElement.placeholder =
-                    'Value stored: enter new value to reset';
-                buttonElement.textContent = 'Reset';
-            } else {
-            }
-        });
-    }
-
-    handleCredential('bluesky_id', idInput, idSaveBtn, idPlaceholder);
-    handleCredential(
-        'bluesky_password',
-        passwordInput,
-        passwordSaveBtn,
-        passwordPlaceholder
-    );
 
     //Functions to handle user token
     getUserToken(function (userTokenResult) {
@@ -228,47 +162,12 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
     }
 
-    // Function to store credentials
-    async function saveCredential(input, credType, button, placeholder) {
-        let credential = input.value;
-        if (credential) {
-            chrome.storage.local.set({ [credType]: credential }, function () {
-                button.style.backgroundColor = '#4a905f';
-                button.style.color = 'white';
-                button.style.borderColor = '#4a905f';
-                button.textContent = 'Saved';
-                input.placeholder = 'Value stored: enter new value to reset';
-                input.value = '';
-                setTimeout(() => {
-                    button.removeAttribute('style');
-                    button.textContent = 'Reset';
-                }, 2000);
-            });
-        } else {
-            chrome.storage.local.remove([credType], function () {
-                button.style.backgroundColor = '#4a905f';
-                button.style.color = 'white';
-                button.style.borderColor = '#4a905f';
-                button.textContent = 'Value reset';
-                input.value = '';
-                input.placeholder = placeholder;
-                setTimeout(() => {
-                    button.removeAttribute('style');
-                    button.textContent = 'Save';
-                }, 2000);
-            });
-        }
-    }
-
     authBtn.addEventListener('click', async () => {
         await authorize();
     });
 
     // Function to obtain user token
     async function authorize() {
-        clientID = await retrieveCredential('bluesky_id');
-        clientSecret = await retrieveCredential('bluesky_password');
-
         const url = 'https://bsky.social/xrpc/com.atproto.server.createSession';
 
         try {
@@ -331,8 +230,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
 
     async function buildQueryUrl() {
-        queryUrl = 'https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?';
-        
+        queryUrl =
+            'https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?';
+
         // Concatenate query URL from search elements
         let keywords = keywordsInput.value;
         let thisPhrase = thisPhraseInput.value;
@@ -375,7 +275,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             queryUrl = queryUrl + '&sort=' + sortBy;
         }
         queryUrl = encodeURI(queryUrl);
-        console.log('Query URL = ', queryUrl);
 
         // Fetch query response from server
         try {
@@ -506,6 +405,11 @@ document.addEventListener('DOMContentLoaded', async function () {
             file = '';
         } else if (fileFormat === 'csv') {
             csvData = [];
+        } else if (fileFormat === 'xlsx') {
+            file = XLSX.utils.book_new();
+            sheet = XLSX.utils.aoa_to_sheet([
+                ['Username', 'Date', 'Time', 'URL', 'Text'],
+            ]);
         }
 
         let p = 1;
@@ -622,7 +526,7 @@ ${text}
 </result>
 <lb></lb><lb></lb>`;
                     } else if (fileFormat === 'txt') {
-                        file = file + `\n\n${text}\n————`;
+                        file = file + `\n\n${text}\n\n————`;
                     } else if (fileFormat === 'json') {
                         text = text.replaceAll('\n', ' ');
                         file[id] = {
@@ -635,6 +539,10 @@ ${text}
                     } else if (fileFormat === 'csv') {
                         text = text.replaceAll('\n', ' ');
                         csvData.push({ username, date, time, url, text });
+                    } else if (fileFormat === 'xlsx') {
+                        text = text.replaceAll('\n', ' ');
+                        let row = [username, date, time, url, text];
+                        XLSX.utils.sheet_add_aoa(sheet, [row], { origin: -1 });
                     }
                     if (maxResults !== Infinity) {
                         let resultPercent = Math.round(
@@ -681,13 +589,18 @@ ${text}
             }
             const csvString = convertToCsv(csvData);
             var myBlob = new Blob([csvString], { type: 'text/csv' });
+        } else if (fileFormat === 'xlsx') {
+            XLSX.utils.book_append_sheet(file, sheet, 'Results');
+            XLSX.writeFile(file, 'bluesky_results.xlsx');
         }
-        var url = window.URL.createObjectURL(myBlob);
-        var anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.download = `bluesky_results.${fileFormat}`;
-        anchor.click();
-        window.URL.revokeObjectURL(url);
+        if (fileFormat !== 'xlsx') {
+            var url = window.URL.createObjectURL(myBlob);
+            var anchor = document.createElement('a');
+            anchor.href = url;
+            anchor.download = `bluesky_results.${fileFormat}`;
+            anchor.click();
+            window.URL.revokeObjectURL(url);
+        }
     }
 
     // Assign role to reset button

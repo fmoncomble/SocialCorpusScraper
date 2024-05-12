@@ -226,7 +226,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         authBtnContainer.style.display = 'block';
     });
 
-
     let clientID = await retrieveCredential('masto_client_id');
     let clientSecret = await retrieveCredential('masto_client_secret');
     let clientCode = await retrieveCredential('masto_client_code');
@@ -378,7 +377,10 @@ document.addEventListener('DOMContentLoaded', async function () {
                 body: formData,
             });
             if (!response.ok) {
-                window.alert('Could not revoke authorization: server responded with error ' + response.status);
+                window.alert(
+                    'Could not revoke authorization: server responded with error ' +
+                        response.status
+                );
                 throw new Error('Could not revoke token: ', response.status);
             } else {
                 window.alert('Authorization successfully revoked');
@@ -699,6 +701,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     let statuses;
     let id;
     let csvData = [];
+    let sheet;
     let tootCount = 1;
     let nextQueryUrl;
 
@@ -751,6 +754,11 @@ document.addEventListener('DOMContentLoaded', async function () {
             file = '';
         } else if (fileFormat === 'csv') {
             csvData = [];
+        } else if (fileFormat === 'xlsx') {
+            file = XLSX.utils.book_new();
+            sheet = XLSX.utils.aoa_to_sheet([
+                ['ID', 'Username', 'Date', 'Time', 'URL', 'Text'],
+            ]);
         }
 
         let p = 1;
@@ -894,6 +902,7 @@ ${text}
                     } else if (fileFormat === 'txt') {
                         file = file + `\n\n${text}\n\n——————`;
                     } else if (fileFormat === 'json') {
+                        text = text.replaceAll('\n', ' ');
                         file[id] = {
                             username: `${username}`,
                             date: `${date}`,
@@ -904,6 +913,10 @@ ${text}
                     } else if (fileFormat === 'csv') {
                         text = text.replaceAll('\n', ' ');
                         csvData.push({ username, date, time, url, text });
+                    } else if (fileFormat === 'xlsx') {
+                        text = text.replaceAll('\n', ' ');
+                        let row = [id, username, date, time, url, text];
+                        XLSX.utils.sheet_add_aoa(sheet, [row], { origin: -1 });
                     }
                     if (maxToots !== Infinity) {
                         let tootPercent = Math.round(
@@ -954,13 +967,18 @@ ${text}
             }
             const csvString = convertToCsv(csvData);
             var myBlob = new Blob([csvString], { type: 'text/csv' });
+        } else if (fileFormat === 'xlsx') {
+            XLSX.utils.book_append_sheet(file, sheet, 'Toots');
+            XLSX.writeFile(file, 'toots.xlsx');
         }
-        var url = window.URL.createObjectURL(myBlob);
-        var anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.download = `toots.${fileFormat}`;
-        anchor.click();
-        window.URL.revokeObjectURL(url);
+        if (fileFormat !== 'xlsx') {
+            var url = window.URL.createObjectURL(myBlob);
+            var anchor = document.createElement('a');
+            anchor.href = url;
+            anchor.download = `toots.${fileFormat}`;
+            anchor.click();
+            window.URL.revokeObjectURL(url);
+        }
     }
 
     // Assign role to reset button
