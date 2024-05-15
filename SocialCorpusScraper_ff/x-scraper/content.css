@@ -51,8 +51,8 @@ input#max-tweets-input:focus-visible {
     outline: solid 0.5px gray;
 }
 
-button,
-select {
+button.x-scraper,
+select.x-scraper {
     border: 1px solid;
     border-color: #e0e0e0;
     border-radius: 4px;
@@ -68,19 +68,19 @@ select {
     display: inline-block;
 }
 
-select:focus-visible,
-button:focus-visible {
+select.x-scraper:focus-visible,
+button.x-scraper:focus-visible {
     outline: none;
 }
 
-button:hover,
-select:hover {
+button.x-scraper:hover,
+select.x-scraper:hover {
     border-color: #bbdefb;
     background-color: rgba(33, 150, 243, 0.04);
     cursor: pointer;
 }
 
-button:active {
+button.x-scraper:active {
     border: 2px solid;
 }
 

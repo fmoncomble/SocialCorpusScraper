@@ -51,6 +51,7 @@ scrapeUIContainer.appendChild(formatDiv);
 const formatSelect = document.createElement('select');
 formatSelect.setAttribute('id', 'format-select');
 formatSelect.setAttribute('name', 'format-select');
+formatSelect.classList.add('x-scraper');
 const xml = new Option('XML/XTZ', 'xml');
 const txt = new Option('TXT', 'txt');
 const csv = new Option('CSV', 'csv');
@@ -72,9 +73,11 @@ buttonDiv.setAttribute('id', 'button-div');
 scrapeUIContainer.appendChild(buttonDiv);
 const scrapeButton = document.createElement('button');
 scrapeButton.setAttribute('id', 'scrape-button');
+scrapeButton.classList.add('x-scraper');
 scrapeButton.textContent = 'Start scraping';
 const stopButton = document.createElement('button');
 stopButton.setAttribute('id', 'stop-button');
+stopButton.classList.add('x-scraper');
 stopButton.textContent = 'Stop scraping';
 buttonDiv.appendChild(scrapeButton);
 buttonDiv.appendChild(stopButton);
@@ -92,15 +95,18 @@ resetMsg.textContent =
     'You can also resume scraping or click "Reset" to start afresh';
 const resumeButton = document.createElement('button');
 resumeButton.setAttribute('id', 'resume-button');
+resumeButton.classList.add('x-scraper');
 resumeButton.textContent = 'Resume';
 const resetButton = document.createElement('button');
 resetButton.setAttribute('id', 'reset-button');
+resetButton.classList.add('x-scraper');
 resetButton.textContent = 'Reset';
 resetDiv.appendChild(resetMsg);
 resetDiv.appendChild(resumeButton);
 resetDiv.appendChild(resetButton);
 
 function resetInterface() {
+    window.scrollTo(0, 0);
     tweetSet = new Set();
     i = 1;
     tweetCount = 0;
@@ -149,6 +155,7 @@ const downloadDiv = document.createElement('div');
 downloadDiv.setAttribute('id', 'download-div');
 const downloadButton = document.createElement('button');
 downloadButton.setAttribute('id', 'download-button');
+downloadButton.classList.add('x-scraper');
 downloadButton.textContent = `Download ${fileFormat.toUpperCase()}`;
 downloadDiv.appendChild(downloadButton);
 scrapeUIContainer.appendChild(downloadDiv);
@@ -177,14 +184,12 @@ resetButton.addEventListener('click', () => {
 });
 
 scrapeButton.addEventListener('click', triggerScrape);
-resumeButton.addEventListener('click', triggerScrape);
 
-async function triggerScrape() {
+resumeButton.addEventListener('click', async () => {
     stopButton.style.display = 'inline-block';
     scrapeButton.style.display = 'none';
     downloadButton.style.display = 'none';
     try {
-
         if (!maxTweets) {
             maxTweets = Infinity;
         }
@@ -198,9 +203,9 @@ async function triggerScrape() {
     } catch (error) {
         console.error('Error: ', error);
     }
-}
+});
 
-function scrape() {
+async function triggerScrape() {
     tweetSet = new Set();
     if (fileFormat === 'xml') {
         file = `<Text>`;
@@ -217,6 +222,26 @@ function scrape() {
         ]);
     }
 
+    stopButton.style.display = 'inline-block';
+    scrapeButton.style.display = 'none';
+    downloadButton.style.display = 'none';
+    try {
+        if (!maxTweets) {
+            maxTweets = Infinity;
+        }
+        await scrape();
+        stopButton.style.display = 'none';
+        formatDiv.style.display = 'none';
+        maxTweetsInputLabel.style.display = 'none';
+        maxTweetsInput.style.display = 'none';
+        resetDiv.style.display = 'inline-block';
+        downloadButton.style.display = 'inline-block';
+    } catch (error) {
+        console.error('Error: ', error);
+    }
+}
+
+function scrape() {
     abort = false;
     return new Promise((resolve, reject) => {
         if (abort) return;
@@ -257,7 +282,8 @@ function scrape() {
                         let userNameContainer = userNameContainers.find((e) =>
                             e.textContent.startsWith('@')
                         );
-                        let userName = userNameContainer.textContent.normalize('NFC');
+                        let userName =
+                            userNameContainer.textContent.normalize('NFC');
                         let date = element[index]
                             .querySelector('time')
                             .getAttribute('datetime');
@@ -320,11 +346,25 @@ ${status}
 `;
                             } else if (fileFormat === 'csv') {
                                 status = status.replaceAll('\n', ' ');
-                                csvData.push({ userName, date, time, tweetUrl, status });
+                                csvData.push({
+                                    userName,
+                                    date,
+                                    time,
+                                    tweetUrl,
+                                    status,
+                                });
                             } else if (fileFormat === 'xlsx') {
                                 status = status.replaceAll('\n', ' ');
-                                let row = [userName, date, time, tweetUrl, status];
-                                XLSX.utils.sheet_add_aoa(sheet, [row], { origin: -1 });
+                                let row = [
+                                    userName,
+                                    date,
+                                    time,
+                                    tweetUrl,
+                                    status,
+                                ];
+                                XLSX.utils.sheet_add_aoa(sheet, [row], {
+                                    origin: -1,
+                                });
                             }
                             tweetCount++;
                             tweetSet.add(tweetId);
