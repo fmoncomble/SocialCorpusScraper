@@ -520,7 +520,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                         file =
                             file +
                             `<lb></lb><lb></lb>
-<username="${username}" date="${date}" time="${time}"><lb></lb>
+<result username="${username}" date="${date}" time="${time}"><lb></lb>
 <ref target="${url}">${url}</ref><lb></lb><lb></lb>
 ${text}
 </result>
