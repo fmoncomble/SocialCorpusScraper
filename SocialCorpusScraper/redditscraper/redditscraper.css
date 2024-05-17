@@ -180,7 +180,7 @@ button#reset-auth {
 }
 
 label {
-    display: block;
+    display: inline-block;
 }
 
 input.reddit-scraper {

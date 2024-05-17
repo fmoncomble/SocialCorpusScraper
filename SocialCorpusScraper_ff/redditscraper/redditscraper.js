@@ -21,7 +21,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     const searchFold = document.getElementById('search-fold');
     const searchUnfold = document.getElementById('search-unfold');
     const searchContainer = document.getElementById('search-container');
+    const checkbox = document.getElementById('checkbox');
+    const titleWordsInput = document.getElementById('title-words');
     const keywordsInput = document.getElementById('keywords');
+    const anyWordsInput = document.getElementById('any-words');
+    const noWordsInput = document.getElementById('no-words');
     const subredditInput = document.getElementById('subreddit');
     const thisPhraseInput = document.getElementById('this-phrase');
     const timeRangeSelect = document.querySelector('select#time-range');
@@ -575,6 +579,15 @@ document.addEventListener('DOMContentLoaded', async function () {
         return exist;
     }
 
+    checkbox.addEventListener('change', () => {
+        if (checkbox.checked === true) {
+            titleWordsInput.style.display = 'inline-block';
+        } else if (checkbox.checked === false) {
+            titleWordsInput.value = '';
+            titleWordsInput.style.display = 'none';
+        }
+    });
+
     let queryUrl;
 
     async function buildQueryUrl() {
@@ -582,7 +595,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         queryUrl = 'https://oauth.reddit.com/';
 
         // Concatenate query URL from search elements
+        let titleWords = titleWordsInput.value.replaceAll(' ', ' AND ');
         let keywords = keywordsInput.value.replaceAll(' ', ' AND ');
+        let anyWords = anyWordsInput.value.replaceAll(' ', ' OR ');
+        let noWords = noWordsInput.value.replaceAll(' ', ' OR ');
         let thisPhrase = thisPhraseInput.value;
         let subreddit = subredditInput.value;
         if (subreddit) {
@@ -597,18 +613,43 @@ document.addEventListener('DOMContentLoaded', async function () {
                 return;
             }
         }
-        queryUrl = queryUrl + 'search.json?';
-        if (keywords || thisPhrase) {
-            queryUrl = queryUrl + 'q=';
+        queryUrl = queryUrl + 'search.json?q=';
+        if (titleWords) {
+            titleWords = `(${titleWords})`;
+            queryUrl = queryUrl + 'title:' + titleWords;
+        }
+        if (titleWords && (keywords || anyWords || noWords || thisPhrase)) {
+            queryUrl = queryUrl + ' AND ';
+        }
+        if (
+            checkbox.checked &&
+            (keywords || anyWords || noWords || thisPhrase)
+        ) {
+            queryUrl = queryUrl + 'selftext:';
         }
         if (keywords) {
+            keywords = `(${keywords})`;
             queryUrl = queryUrl + keywords;
         }
-        if (thisPhrase) {
+        if (anyWords) {
+            anyWords = `(${anyWords})`;
             if (keywords) {
                 queryUrl = queryUrl + ' AND ';
             }
-            queryUrl = queryUrl + '"' + thisPhrase + '"';
+            queryUrl = queryUrl + anyWords;
+        }
+        if (thisPhrase) {
+            if (keywords || anyWords) {
+                queryUrl = queryUrl + ' AND ';
+            }
+            queryUrl = queryUrl + '("' + thisPhrase + '")';
+        }
+        if (noWords) {
+            noWords = `(${noWords})`;
+            if (keywords || anyWords || thisPhrase) {
+                queryUrl = queryUrl + ' NOT ';
+            }
+            queryUrl = queryUrl + noWords;
         }
         queryUrl =
             queryUrl + `&t=${timeRange}&sort=${sortBy}&type=${type}&limit=100`;
@@ -617,7 +658,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         // Fetch query response from server
         try {
-            if (!keywords && !thisPhrase) {
+            if (!titleWords && !keywords && !anyWords && !thisPhrase) {
                 window.alert('Please provide keywords');
                 searchMsg.style.display = 'none';
                 return;
@@ -648,19 +689,20 @@ document.addEventListener('DOMContentLoaded', async function () {
                 );
                 searchMsg.style.display = 'none';
                 throw new Error('Could not fetch search results.');
-            }
-            const searchData = await response.json();
-            const searchResults = searchData.data.children;
-            if (searchResults.length == 0) {
-                searchMsg.style.display = 'none';
-                noResult.style.display = 'block';
             } else {
-                searchMsg.style.display = 'none';
-                searchContainer.style.display = 'none';
-                searchFold.style.display = 'none';
-                searchUnfold.style.display = 'block';
-                extractContainer.style.display = 'block';
-                extractBtn.style.display = 'block';
+                const searchData = await response.json();
+                const searchResults = searchData.data.children;
+                if (searchResults.length == 0) {
+                    searchMsg.style.display = 'none';
+                    noResult.style.display = 'block';
+                } else {
+                    searchMsg.style.display = 'none';
+                    searchContainer.style.display = 'none';
+                    searchFold.style.display = 'none';
+                    searchUnfold.style.display = 'block';
+                    extractContainer.style.display = 'block';
+                    extractBtn.style.display = 'block';
+                }
             }
         } catch (error) {
             console.error(error);

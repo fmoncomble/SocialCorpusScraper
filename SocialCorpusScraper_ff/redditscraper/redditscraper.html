@@ -6,7 +6,7 @@
         <title>RedditScraper</title>
         <link rel="stylesheet" type="text/css" href="redditscraper.css" />
         <script src="redditscraper.js"></script>
-        <script src="../xlsx.full.min.js"></script>
+        <script src="xlsx.full.min.js"></script>
     </head>
 
     <body>
@@ -16,7 +16,7 @@
                 width="300"
                 fill="currentColor"
             />
-            <div id="version-div">v0.2</div>
+            <div id="version-div">v0.3</div>
         </div>
         <br />
         <!-- Authentication container -->
@@ -88,12 +88,35 @@
         </div>
         <div id="search-container" display="block">
             <div>
+                <input type="checkbox" name="checkbox" id="checkbox">
+                <label for="checkbox">Search title and text separately</label>
+            </div>
+            <div>
+                <input
+                    id="title-words"
+                    class="reddit-scraper"
+                    name="title-words"
+                    type="text"
+                    placeholder="Title words"
+                    style="display: none"
+                />
+            </div>
+            <div>
                 <input
                     id="keywords"
                     class="reddit-scraper"
                     name="keywords"
                     type="text"
-                    placeholder="Keywords"
+                    placeholder="All these words"
+                />
+            </div>
+            <div>
+                <input
+                    id="any-words"
+                    class="reddit-scraper"
+                    name="any-words"
+                    type="text"
+                    placeholder="Any of these words"
                 />
             </div>
             <div>
@@ -103,6 +126,15 @@
                     name="this-phrase"
                     type="text"
                     placeholder="Exact phrase"
+                />
+            </div>
+            <div>
+                <input
+                    id="no-words"
+                    class="reddit-scraper"
+                    name="no-words"
+                    type="text"
+                    placeholder="Words to exclude"
                 />
             </div>
             <div>
