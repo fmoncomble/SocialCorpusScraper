@@ -40,6 +40,11 @@ div#instructions-container {
     text-align: left;
 }
 
+div#title-search {
+    margin-top: 1em;
+    font-weight: bold;
+}
+
 button.reddit-scraper,
 select.reddit-scraper {
     color: #ff4500;
@@ -53,10 +58,32 @@ select.reddit-scraper {
     text-align: center;
 }
 
+button.reddit-scraper:disabled,
+select.reddit-scraper:disabled,
+input.reddit-scraper:disabled {
+    color: lightgray;
+    border-color: lightgray;
+    background-color: rgb(242, 242, 242, 0.5);
+    cursor: auto;
+}
+
 select#time-range,
 select#sort-by,
 select#type {
     width: 120px;
+}
+
+select#search-mode {
+    width: auto;
+}
+
+div#expert-instructions {
+    width: 300px !important;
+    display: inline-block;
+    margin-top: 5px;
+    color: #ff4500;
+    font-size: small;
+    width: 95%;
 }
 
 select#output-format {
@@ -108,6 +135,11 @@ button#dl-btn {
 button.reddit-scraper:hover,
 select.reddit-scraper:hover {
     background-color: #ffece6;
+}
+
+button.reddit-scraper:disabled:hover,
+select.reddit-scraper:disabled:hover {
+    background-color: rgb(242, 242, 242, 0.5);
 }
 
 .reddit-spinner {
@@ -197,6 +229,12 @@ input.reddit-scraper:focus-visible {
     outline: solid 2px #ff4500;
 }
 
+div#queryurl {
+    padding-left: 2.5%;
+    width: 95%;
+    overflow-wrap: break-word;
+}
+
 input#token-input {
     display: inline-block;
 }
@@ -239,4 +277,12 @@ p#dismiss {
     font-weight: bold;
     text-decoration: underline;
     cursor: pointer;
+}
+
+div#expert-search {
+    border-radius: 4px;
+    background-color: rgba(255, 236, 230, 0.5);
+    width: 329px;
+    margin-left: 85.5px;
+    margin-top: 5px;
 }

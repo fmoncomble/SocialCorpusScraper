@@ -216,3 +216,38 @@ p#dismiss {
     text-decoration: underline;
     cursor: pointer;
 }
+
+button.masto-scraper:disabled,
+select.masto-scraper:disabled,
+input.masto-scraper:disabled {
+    color: lightgray;
+    border-color: lightgray;
+    background-color: rgb(242, 242, 242, 0.5);
+    cursor: auto;
+}
+
+select#search-mode {
+    width: auto;
+}
+
+div#expert-search {
+    border-radius: 4px;
+    background-color: rgba(231, 232, 254, 0.5);
+    width: 329px;
+    margin-left: 85.5px;
+}
+
+div#expert-instructions {
+    width: 300px !important;
+    display: inline-block;
+    margin-top: 5px;
+    color: #2F0C7A;
+    font-size: small;
+    width: 95%;
+}
+
+div#queryurl {
+    padding-left: 2.5%;
+    width: 95%;
+    overflow-wrap: break-word;
+}

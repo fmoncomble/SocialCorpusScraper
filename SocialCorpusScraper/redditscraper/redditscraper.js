@@ -21,9 +21,14 @@ document.addEventListener('DOMContentLoaded', async function () {
     const searchFold = document.getElementById('search-fold');
     const searchUnfold = document.getElementById('search-unfold');
     const searchContainer = document.getElementById('search-container');
+    const searchModeSelect = document.getElementById('search-mode');
     const checkbox = document.getElementById('checkbox');
+    const titleSearchDiv = document.getElementById('title-search');
     const titleWordsInput = document.getElementById('title-words');
+    const guidedSearchDiv = document.getElementById('guided-search');
+    const expertSearchDiv = document.getElementById('expert-search');
     const keywordsInput = document.getElementById('keywords');
+    const allWordsInput = document.getElementById('all-words');
     const anyWordsInput = document.getElementById('any-words');
     const noWordsInput = document.getElementById('no-words');
     const subredditInput = document.getElementById('subreddit');
@@ -43,6 +48,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const resultsContainer = document.getElementById('results-container');
     const resultsMsg = document.getElementById('results-msg');
     const dlBtn = document.getElementById('dl-btn');
+    const dlResult = document.getElementById('dl-result');
     const resetBtn = document.getElementById('reset-btn');
     const notice = document.getElementById('notice');
     const dismissBtn = document.getElementById('dismiss');
@@ -579,12 +585,25 @@ document.addEventListener('DOMContentLoaded', async function () {
         return exist;
     }
 
+    let searchMode = 'guided';
+
+    searchModeSelect.addEventListener('change', () => {
+        searchMode = searchModeSelect.value;
+        if (searchMode === 'guided') {
+            guidedSearchDiv.style.display = 'block';
+            expertSearchDiv.style.display = 'none';
+        } else if (searchMode === 'expert') {
+            guidedSearchDiv.style.display = 'none';
+            expertSearchDiv.style.display = 'block';
+        }
+    });
+
     checkbox.addEventListener('change', () => {
         if (checkbox.checked === true) {
-            titleWordsInput.style.display = 'inline-block';
+            titleSearchDiv.style.display = 'inline-block';
         } else if (checkbox.checked === false) {
             titleWordsInput.value = '';
-            titleWordsInput.style.display = 'none';
+            titleSearchDiv.style.display = 'none';
         }
     });
 
@@ -595,8 +614,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         queryUrl = 'https://oauth.reddit.com/';
 
         // Concatenate query URL from search elements
-        let titleWords = titleWordsInput.value.replaceAll(' ', ' AND ');
-        let keywords = keywordsInput.value.replaceAll(' ', ' AND ');
+        let titleWords = titleWordsInput.value;
+        let keywords = keywordsInput.value;
+        let allWords = allWordsInput.value;
         let anyWords = anyWordsInput.value.replaceAll(' ', ' OR ');
         let noWords = noWordsInput.value.replaceAll(' ', ' OR ');
         let thisPhrase = thisPhraseInput.value;
@@ -618,47 +638,69 @@ document.addEventListener('DOMContentLoaded', async function () {
             titleWords = `(${titleWords})`;
             queryUrl = queryUrl + 'title:' + titleWords;
         }
-        if (titleWords && (keywords || anyWords || noWords || thisPhrase)) {
+        if (
+            titleWords &&
+            (keywords || allWords || anyWords || noWords || thisPhrase)
+        ) {
             queryUrl = queryUrl + ' AND ';
         }
         if (
             checkbox.checked &&
-            (keywords || anyWords || noWords || thisPhrase)
+            (keywords || allWords || anyWords || noWords || thisPhrase)
         ) {
             queryUrl = queryUrl + 'selftext:';
         }
-        if (keywords) {
+        if (searchMode === 'expert' && keywords) {
             keywords = `(${keywords})`;
             queryUrl = queryUrl + keywords;
-        }
-        if (anyWords) {
-            anyWords = `(${anyWords})`;
-            if (keywords) {
-                queryUrl = queryUrl + ' AND ';
+        } else if (searchMode === 'guided') {
+            if (allWords) {
+                allWords = `(${allWords})`;
+                queryUrl = queryUrl + allWords;
             }
-            queryUrl = queryUrl + anyWords;
-        }
-        if (thisPhrase) {
-            if (keywords || anyWords) {
-                queryUrl = queryUrl + ' AND ';
+            if (anyWords) {
+                anyWords = `(${anyWords})`;
+                if (allWords) {
+                    queryUrl = queryUrl + ' AND ';
+                }
+                queryUrl = queryUrl + anyWords;
             }
-            queryUrl = queryUrl + '("' + thisPhrase + '")';
-        }
-        if (noWords) {
-            noWords = `(${noWords})`;
-            if (keywords || anyWords || thisPhrase) {
-                queryUrl = queryUrl + ' NOT ';
+            if (thisPhrase) {
+                if (allWords || anyWords) {
+                    queryUrl = queryUrl + ' AND ';
+                }
+                queryUrl = queryUrl + '("' + thisPhrase + '")';
             }
-            queryUrl = queryUrl + noWords;
+            if (noWords) {
+                noWords = `(${noWords})`;
+                if (allWords || anyWords || thisPhrase) {
+                    queryUrl = queryUrl + ' NOT ';
+                }
+                queryUrl = queryUrl + noWords;
+            }
         }
         queryUrl =
             queryUrl + `&t=${timeRange}&sort=${sortBy}&type=${type}&limit=100`;
         queryUrl = encodeURI(queryUrl);
+        const queryurlDiv = document.getElementById('queryurl');
+        const queryLink = document.createElement('a');
+        queryLink.setAttribute('href', queryUrl);
+        queryLink.setAttribute('target', '_blank');
+        queryLink.textContent = queryUrl;
+        queryLink.style.fontWeight = 'normal';
+        queryurlDiv.textContent = 'Query URL: ';
+        queryurlDiv.appendChild(queryLink);
         console.log('Query URL = ', queryUrl);
 
         // Fetch query response from server
         try {
-            if (!titleWords && !keywords && !anyWords && !thisPhrase) {
+            if (
+                !titleWords &&
+                !keywords &&
+                !allWords &&
+                !anyWords &&
+                !thisPhrase
+            ) {
                 window.alert('Please provide keywords');
                 searchMsg.style.display = 'none';
                 return;
@@ -712,7 +754,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Assign role to search button
     searchBtn.addEventListener('click', () => {
         extractContainer.style.display = 'none';
-        // searchMsg.style.display = 'block';
         noResult.style.display = 'none';
         buildQueryUrl();
     });
@@ -729,7 +770,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     let fileFormat = 'xml';
     formatSelect.addEventListener('change', () => {
         fileFormat = formatSelect.value;
-        dlBtn.textContent = 'Download ' + fileFormat.toUpperCase();
     });
 
     let file;
@@ -737,6 +777,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     let after;
     let id;
     let csvData = [];
+    let skippedItems = 0;
     let resultCount = 1;
     let nextQueryUrl;
 
@@ -751,15 +792,25 @@ document.addEventListener('DOMContentLoaded', async function () {
         abortBtn.style.display = 'block';
         extractBtn.style.display = 'none';
         resultsContainer.style.display = 'block';
+        resultsMsg.textContent = '';
         dlBtn.style.display = 'none';
+        dlResult.textContent = '';
+        resetBtn.style.display = 'none';
         try {
             await scrape();
             abortBtn.style.display = 'none';
             extractBtn.style.display = 'block';
-            extractBtn.disabled = true;
+            formatSelect.disabled = false;
+            maxResultsInput.disabled = false;
+            extractBtn.disabled = false;
             extractSpinner.style.display = 'none';
             resultCount = resultCount - 1;
             resultsMsg.textContent = resultCount + ' result(s) extracted';
+            if (skippedItems > 0) {
+                const skippedItemsText = document.createTextNode(` — ${skippedItems} post(s) ignored: too long for XLSX`);
+                resultsMsg.appendChild(skippedItemsText);
+            }
+            dlBtn.textContent = 'Download ' + fileFormat.toUpperCase();
             dlBtn.style.display = 'inline-block';
             resetBtn.style.display = 'inline-block';
         } catch (error) {
@@ -795,6 +846,9 @@ document.addEventListener('DOMContentLoaded', async function () {
                 ['Username', 'Date', 'Time', 'URL', 'Title', 'Text'],
             ]);
         }
+
+        resultCount = 1;
+        skippedItems = 0;
 
         let p = 1;
         while (resultCount <= maxResults) {
@@ -887,10 +941,16 @@ document.addEventListener('DOMContentLoaded', async function () {
                     dateElements = date.split('T');
                     date = dateElements[0];
                     time = dateElements[1].split('.')[0];
+
                     text = r.data.selftext;
                     if (!text) {
                         continue;
+                    } else if (fileFormat === 'xlsx' && text.length > 32767) {
+                        console.log('Text too long for XLSX, skipping');
+                        skippedItems++;
+                        continue;
                     }
+
                     url = 'https://www.reddit.com' + r.data.permalink;
 
                     if (fileFormat === 'xml') {
@@ -983,39 +1043,54 @@ ${text}
     // Assign role to download button
     dlBtn.addEventListener('click', () => {
         download();
-        const dlResult = document.getElementById('dl-result');
-        dlResult.style.display = 'block';
-        dlResult.textContent = fileFormat.toUpperCase() + ' file downloaded';
     });
 
     // Function to download output file
     function download() {
-        if (fileFormat === 'xml') {
-            var myBlob = new Blob([file], { type: 'application/xml' });
-        } else if (fileFormat === 'json') {
-            var fileString = JSON.stringify(file);
-            var myBlob = new Blob([fileString], { type: 'text/plain' });
-        } else if (fileFormat === 'txt') {
-            var myBlob = new Blob([file], { type: 'text/plain' });
-        } else if (fileFormat === 'csv') {
-            function convertToCsv(data) {
-                const header = Object.keys(data[0]).join('\t');
-                const rows = data.map((obj) => Object.values(obj).join('\t'));
-                return [header, ...rows].join('\n');
+        try {
+            if (fileFormat === 'xml') {
+                var myBlob = new Blob([file], { type: 'application/xml' });
+            } else if (fileFormat === 'json') {
+                var fileString = JSON.stringify(file);
+                var myBlob = new Blob([fileString], { type: 'text/plain' });
+            } else if (fileFormat === 'txt') {
+                var myBlob = new Blob([file], { type: 'text/plain' });
+            } else if (fileFormat === 'csv') {
+                function convertToCsv(data) {
+                    const header = Object.keys(data[0]).join('\t');
+                    const rows = data.map((obj) =>
+                        Object.values(obj).join('\t')
+                    );
+                    return [header, ...rows].join('\n');
+                }
+                const csvString = convertToCsv(csvData);
+                var myBlob = new Blob([csvString], { type: 'text/csv' });
+            } else if (fileFormat === 'xlsx') {
+                XLSX.utils.book_append_sheet(file, sheet, 'Results');
+                XLSX.writeFile(file, 'reddit_results.xlsx');
             }
-            const csvString = convertToCsv(csvData);
-            var myBlob = new Blob([csvString], { type: 'text/csv' });
-        } else if (fileFormat === 'xlsx') {
-            XLSX.utils.book_append_sheet(file, sheet, 'Results');
-            XLSX.writeFile(file, 'reddit_results.xlsx');
-        }
-        if (fileFormat !== 'xlsx') {
-            var url = window.URL.createObjectURL(myBlob);
-            var anchor = document.createElement('a');
-            anchor.href = url;
-            anchor.download = `reddit_results.${fileFormat}`;
-            anchor.click();
-            window.URL.revokeObjectURL(url);
+            if (fileFormat !== 'xlsx') {
+                var url = window.URL.createObjectURL(myBlob);
+                var anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = `reddit_results.${fileFormat}`;
+                anchor.click();
+                window.URL.revokeObjectURL(url);
+            }
+            dlResult.style.display = 'block';
+            dlResult.textContent =
+                fileFormat.toUpperCase() + ' file downloaded';
+        } catch (error) {
+            console.error(error);
+            window.alert(
+                `${fileFormat.toUpperCase()} file creation failed. Try another output format.`
+            );
+            formatSelect.disabled = false;
+            maxResultsInput.disabled = false;
+            extractBtn.disabled = false;
+            dlBtn.style.display = 'none';
+            resetBtn.style.display = 'none';
+            dlResult.textContent = '';
         }
     }
 

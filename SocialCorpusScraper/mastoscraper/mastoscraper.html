@@ -2,11 +2,11 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <link href="favicon.ico" rel="icon" type="image/x-icon">
+        <link href="favicon.ico" rel="icon" type="image/x-icon" />
         <title>MastoScraper</title>
         <link rel="stylesheet" type="text/css" href="mastoscraper.css" />
         <script src="mastoscraper.js"></script>
-        <script src="../xlsx.full.min.js"></script>
+        <script src="xlsx.full.min.js"></script>
     </head>
 
     <body>
@@ -16,7 +16,7 @@
                 width="300"
                 fill="currentColor"
             />
-            <div id="version-div">v0.5</div>
+            <div id="version-div">v0.6</div>
         </div>
         <br />
         <!-- Authentication container -->
@@ -38,7 +38,10 @@
                     the "Submit" button at the bottom of the page. You will need
                     the application ID and secret.
                 </p>
-                <p>Follow the steps below to complete authorization. <i>(Your credentials are only stored locally.)</i></p>
+                <p>
+                    Follow the steps below to complete authorization.
+                    <i>(Your credentials are only stored locally.)</i>
+                </p>
                 <p></p>
                 <p><strong>⚠️ Allow pop-ups when prompted.</strong></p>
             </div>
@@ -161,21 +164,63 @@
         </div>
         <div id="search-container" display="block">
             <div>
-                <input
-                    id="all-words"
+                <select
+                    name="search-mode"
+                    id="search-mode"
                     class="masto-scraper"
-                    name="all-words"
+                >
+                    <option value="guided">Guided mode</option>
+                    <option value="expert">Expert mode</option>
+                </select>
+            </div>
+            <div id="guided-search">
+                <div>
+                    <input
+                        id="all-words"
+                        class="masto-scraper"
+                        name="all-words"
+                        type="text"
+                        placeholder="All of these words"
+                    />
+                </div>
+                <div>
+                    <input
+                        id="any-words"
+                        class="masto-scraper"
+                        name="any-words"
+                        type="text"
+                        placeholder="Any of these words"
+                    />
+                </div>
+                <div>
+                    <input
+                        id="this-phrase"
+                        class="masto-scraper"
+                        name="this-phrase"
+                        type="text"
+                        placeholder="This exact phrase"
+                    />
+                </div>
+                <input
+                    id="no-words"
+                    class="masto-scraper"
+                    name="no-words"
                     type="text"
-                    placeholder="All these words"
+                    placeholder="Words to exclude"
                 />
             </div>
-            <div>
+            </div>
+            <div id="expert-search" style="display: none">
+                <div id="expert-instructions">
+                    Type the keywords you want to search for.<br />You may use
+                    booleans (AND, OR, NOT), quotes, and parentheses for grouping.
+                </div>
                 <input
-                    id="this-phrase"
+                    id="keywords"
                     class="masto-scraper"
-                    name="this-phrase"
+                    name="keywords"
                     type="text"
-                    placeholder="This exact phrase"
+                    placeholder="Keywords"
                 />
             </div>
             <div>
@@ -245,6 +290,9 @@
                 Search returned no result
             </div>
         </div>
+        <br />
+        <div id="queryurl"></div>
+        <br />
         <!-- Extraction container -->
         <div id="extract-container" style="display: none">
             <div>

@@ -27,8 +27,14 @@ document.addEventListener('DOMContentLoaded', async function () {
     const searchFold = document.getElementById('search-fold');
     const searchUnfold = document.getElementById('search-unfold');
     const searchContainer = document.getElementById('search-container');
+    const searchModeSelect = document.getElementById('search-mode');
+    const guidedSearchDiv = document.getElementById('guided-search');
+    const expertSearchDiv = document.getElementById('expert-search');
+    const keywordsInput = document.getElementById('keywords');
     const allWordsInput = document.getElementById('all-words');
+    const anyWordsInput = document.getElementById('any-words');
     const thisPhraseInput = document.getElementById('this-phrase');
+    const noWordsInput = document.getElementById('no-words');
     const langInput = document.getElementById('lang');
     const accountInput = document.getElementById('account');
     const searchInstanceInput = document.getElementById('search-instance');
@@ -47,6 +53,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const resultsMsg = document.getElementById('results-msg');
     const dlBtn = document.getElementById('dl-btn');
     const resetBtn = document.getElementById('reset-btn');
+    const dlResult = document.getElementById('dl-result');
     const notice = document.getElementById('notice');
     const dismissBtn = document.getElementById('dismiss');
 
@@ -550,6 +557,19 @@ document.addEventListener('DOMContentLoaded', async function () {
         accountInput.removeAttribute('style');
     });
 
+    let searchMode = 'guided';
+
+    searchModeSelect.addEventListener('change', () => {
+        searchMode = searchModeSelect.value;
+        if (searchMode === 'guided') {
+            guidedSearchDiv.style.display = 'block';
+            expertSearchDiv.style.display = 'none';
+        } else if (searchMode === 'expert') {
+            guidedSearchDiv.style.display = 'none';
+            expertSearchDiv.style.display = 'block';
+        }
+    });
+
     async function buildQueryUrl() {
         mastoInstance = await retrieveCredential('mastoinstance');
         if (!mastoInstance) {
@@ -560,21 +580,41 @@ document.addEventListener('DOMContentLoaded', async function () {
         queryUrl = 'https://' + mastoInstance + '/api/v2/search?';
 
         // Concatenate query URL from search elements
+        let keywords = keywordsInput.value;
         let allWords = allWordsInput.value.replaceAll(' ', ' AND ');
+        let anyWords = anyWordsInput.value.replaceAll(' ', ' OR ');
         let thisPhrase = thisPhraseInput.value;
+        let noWords = noWordsInput.value.replaceAll(' ', ' OR ');
         lang = langInput.value;
         let account = accountInput.value.replaceAll(' ', ' AND ');
-        if (allWords || thisPhrase) {
-            queryUrl = queryUrl + 'q=';
-        }
-        if (allWords) {
-            queryUrl = queryUrl + allWords;
-        }
-        if (thisPhrase) {
-            if (allWords) {
-                queryUrl = queryUrl + ' AND ';
+        if (searchMode === 'expert') {
+            keywords = `(${keywords})`;
+            queryUrl = queryUrl + 'q=' + keywords;
+        } else if (searchMode === 'guided') {
+            if (allWords || anyWords || thisPhrase) {
+                queryUrl = queryUrl + 'q=';
             }
-            queryUrl = queryUrl + '"' + thisPhrase + '"';
+            if (allWords) {
+                queryUrl = queryUrl + `(${allWords})`;
+            }
+            if (anyWords) {
+                if (allWords) {
+                    queryUrl = queryUrl + ' AND ';
+                }
+                queryUrl = queryUrl + `(${anyWords})`;
+            }
+            if (thisPhrase) {
+                if (allWords || anyWords) {
+                    queryUrl = queryUrl + ' AND ';
+                }
+                queryUrl = queryUrl + '("' + thisPhrase + '")';
+            }
+            if (noWords) {
+                if (allWords || anyWords || thisPhrase) {
+                    queryUrl = queryUrl + ' NOT ';
+                }
+                queryUrl = queryUrl + `(${noWords})`;
+            }
         }
         if (account) {
             try {
@@ -605,11 +645,19 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
         queryUrl = queryUrl + '&type=statuses&resolve=true';
         queryUrl = encodeURI(queryUrl);
+        const queryurlDiv = document.getElementById('queryurl');
+        const queryLink = document.createElement('a');
+        queryLink.setAttribute('href', queryUrl);
+        queryLink.setAttribute('target', '_blank');
+        queryLink.textContent = queryUrl;
+        queryLink.style.fontWeight = 'normal';
+        queryurlDiv.textContent = 'Query URL: ';
+        queryurlDiv.appendChild(queryLink);
         console.log('Query URL: ', queryUrl);
 
         // Fetch query response from server
         try {
-            if (!allWords && !thisPhrase) {
+            if (!keywords && !allWords && !anyWords && !thisPhrase) {
                 window.alert('Please provide keywords');
                 searchMsg.style.display = 'none';
                 return;
@@ -675,7 +723,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     let fileFormat = 'xml';
     formatSelect.addEventListener('change', () => {
         fileFormat = formatSelect.value;
-        dlBtn.textContent = 'Download ' + fileFormat.toUpperCase();
     });
 
     let fromDate;
@@ -701,6 +748,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     let statuses;
     let id;
     let csvData = [];
+    let skippedItems = 0;
     let sheet;
     let tootCount = 1;
     let nextQueryUrl;
@@ -716,15 +764,27 @@ document.addEventListener('DOMContentLoaded', async function () {
         abortBtn.style.display = 'block';
         extractBtn.style.display = 'none';
         resultsContainer.style.display = 'block';
+        resultsMsg.textContent = '';
         dlBtn.style.display = 'none';
+        dlResult.textContent = '';
+        resetBtn.style.display = 'none';
         try {
             await scrape();
             abortBtn.style.display = 'none';
             extractBtn.style.display = 'block';
-            extractBtn.disabled = true;
+            formatSelect.disabled = false;
+            maxTootsInput.disabled = false;
+            extractBtn.disabled = false;
             extractSpinner.style.display = 'none';
             tootCount = tootCount - 1;
             resultsMsg.textContent = tootCount + ' toot(s) extracted';
+            if (skippedItems > 0) {
+                const skippedItemsText = document.createTextNode(
+                    ` — ${skippedItems} toot(s) ignored: too long for XLSX`
+                );
+                resultsMsg.appendChild(skippedItemsText);
+            }
+            dlBtn.textContent = 'Download ' + fileFormat.toUpperCase();
             dlBtn.style.display = 'inline-block';
             resetBtn.style.display = 'inline-block';
         } catch (error) {
@@ -762,6 +822,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
 
         let p = 1;
+
+        tootCount = 1;
+        skippedItems = 0;
+
         while (tootCount <= maxToots) {
             await processPage();
 
@@ -863,6 +927,10 @@ document.addEventListener('DOMContentLoaded', async function () {
                         .replaceAll('<p>', '\n')
                         .replaceAll(/<.+?>/gu, '');
                     text = rawTextString.normalize('NFC');
+                    if (fileFormat === 'xlsx' && text.length > 32767) {
+                        skippedItems++;
+                        continue;
+                    }
                     url = s.url;
 
                     if (fileFormat === 'xml') {
@@ -945,39 +1013,53 @@ ${text}
     // Assign role to download button
     dlBtn.addEventListener('click', () => {
         download();
-        const dlResult = document.getElementById('dl-result');
         dlResult.style.display = 'block';
         dlResult.textContent = fileFormat.toUpperCase() + ' file downloaded';
     });
 
     // Function to download output file
     function download() {
-        if (fileFormat === 'xml') {
-            var myBlob = new Blob([file], { type: 'application/xml' });
-        } else if (fileFormat === 'json') {
-            var fileString = JSON.stringify(file);
-            var myBlob = new Blob([fileString], { type: 'text/plain' });
-        } else if (fileFormat === 'txt') {
-            var myBlob = new Blob([file], { type: 'text/plain' });
-        } else if (fileFormat === 'csv') {
-            function convertToCsv(data) {
-                const header = Object.keys(data[0]).join('\t');
-                const rows = data.map((obj) => Object.values(obj).join('\t'));
-                return [header, ...rows].join('\n');
+        try {
+            if (fileFormat === 'xml') {
+                var myBlob = new Blob([file], { type: 'application/xml' });
+            } else if (fileFormat === 'json') {
+                var fileString = JSON.stringify(file);
+                var myBlob = new Blob([fileString], { type: 'text/plain' });
+            } else if (fileFormat === 'txt') {
+                var myBlob = new Blob([file], { type: 'text/plain' });
+            } else if (fileFormat === 'csv') {
+                function convertToCsv(data) {
+                    const header = Object.keys(data[0]).join('\t');
+                    const rows = data.map((obj) =>
+                        Object.values(obj).join('\t')
+                    );
+                    return [header, ...rows].join('\n');
+                }
+                const csvString = convertToCsv(csvData);
+                var myBlob = new Blob([csvString], { type: 'text/csv' });
+            } else if (fileFormat === 'xlsx') {
+                XLSX.utils.book_append_sheet(file, sheet, 'Toots');
+                XLSX.writeFile(file, 'toots.xlsx');
             }
-            const csvString = convertToCsv(csvData);
-            var myBlob = new Blob([csvString], { type: 'text/csv' });
-        } else if (fileFormat === 'xlsx') {
-            XLSX.utils.book_append_sheet(file, sheet, 'Toots');
-            XLSX.writeFile(file, 'toots.xlsx');
-        }
-        if (fileFormat !== 'xlsx') {
-            var url = window.URL.createObjectURL(myBlob);
-            var anchor = document.createElement('a');
-            anchor.href = url;
-            anchor.download = `toots.${fileFormat}`;
-            anchor.click();
-            window.URL.revokeObjectURL(url);
+            if (fileFormat !== 'xlsx') {
+                var url = window.URL.createObjectURL(myBlob);
+                var anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = `toots.${fileFormat}`;
+                anchor.click();
+                window.URL.revokeObjectURL(url);
+            }
+        } catch (error) {
+            console.error(error);
+            window.alert(
+                `${fileFormat.toUpperCase()} file creation failed. Try another output format.`
+            );
+            formatSelect.disabled = false;
+            maxResultsInput.disabled = false;
+            extractBtn.disabled = false;
+            dlBtn.style.display = 'none';
+            resetBtn.style.display = 'none';
+            dlResult.textContent = '';
         }
     }
 
