@@ -557,6 +557,22 @@ document.addEventListener('DOMContentLoaded', async function () {
         accountInput.removeAttribute('style');
     });
 
+    let fromDate;
+    let min_id;
+    fromDateInput.addEventListener('change', () => {
+        fromDate = new Date(fromDateInput.value);
+        const fromDateStamp = BigInt(fromDate.getTime() / 1000);
+        min_id = (fromDateStamp << 16n) * 1000n;
+    });
+
+    let toDate;
+    let max_id;
+    toDateInput.addEventListener('change', () => {
+        toDate = new Date(toDateInput.value);
+        const toDateStamp = BigInt(toDate.getTime() / 1000);
+        max_id = (toDateStamp << 16n) * 1000n;
+    });
+
     let searchMode = 'guided';
 
     searchModeSelect.addEventListener('change', () => {
@@ -587,6 +603,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         let noWords = noWordsInput.value.replaceAll(' ', ' OR ');
         lang = langInput.value;
         let account = accountInput.value.replaceAll(' ', ' AND ');
+        if (fromDate) {
+        }
         if (searchMode === 'expert') {
             keywords = `(${keywords})`;
             queryUrl = queryUrl + 'q=' + keywords;
@@ -635,13 +653,25 @@ document.addEventListener('DOMContentLoaded', async function () {
                     accountInput.focus();
                     return;
                 }
-                if (allWords || thisPhrase) {
+                if (allWords || anyWords || thisPhrase) {
                     queryUrl = queryUrl + '&';
                 }
                 queryUrl = queryUrl + 'account_id=' + account;
             } catch (error) {
                 console.error(error);
             }
+        }
+        if (fromDate) {
+            if (allWords || anyWords || thisPhrase) {
+                queryUrl = queryUrl + '&';
+            }
+            queryUrl = queryUrl + 'min_id=' + min_id;
+        }
+        if (toDate) {
+            if (allWords || anyWords || thisPhrase) {
+                queryUrl = queryUrl + '&';
+            }
+            queryUrl = queryUrl + 'max_id=' + max_id;
         }
         queryUrl = queryUrl + '&type=statuses&resolve=true';
         queryUrl = encodeURI(queryUrl);
@@ -653,7 +683,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         queryLink.style.fontWeight = 'normal';
         queryurlDiv.textContent = 'Query URL: ';
         queryurlDiv.appendChild(queryLink);
-        console.log('Query URL: ', queryUrl);
 
         // Fetch query response from server
         try {
@@ -723,16 +752,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     let fileFormat = 'xml';
     formatSelect.addEventListener('change', () => {
         fileFormat = formatSelect.value;
-    });
-
-    let fromDate;
-    fromDateInput.addEventListener('change', () => {
-        fromDate = fromDateInput.value;
-    });
-
-    let toDate;
-    toDateInput.addEventListener('change', () => {
-        toDate = toDateInput.value;
     });
 
     let searchInstances;
@@ -855,7 +874,9 @@ document.addEventListener('DOMContentLoaded', async function () {
                 if (p === 1) {
                     nextQueryUrl = queryUrl;
                 } else if (p > 1) {
-                    nextQueryUrl = queryUrl + '&max_id=' + id.toString();
+                    nextQueryUrl = new URL(queryUrl);
+                    nextQueryUrl.searchParams.set('max_id', id.toString());
+                    nextQueryUrl = nextQueryUrl.toString();
                 }
                 nextQueryUrl = nextQueryUrl + '&limit=40';
                 const response = await fetch(nextQueryUrl, {
