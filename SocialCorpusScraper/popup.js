@@ -26,6 +26,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
             );
+        } else if (!module) {
+            errorMsg.style.display = 'none';
         } else {
             if (module === 'bsky') {
                 url = blueskyscraperUrl;
