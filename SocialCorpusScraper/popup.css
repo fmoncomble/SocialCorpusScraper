@@ -10,20 +10,17 @@ body {
     font-family: 'Roboto', system-ui, sans-serif;
     font-size: small;
     width: 236px;
-    height: 330px;
+    height: 100px;
     padding: 10px;
 }
 
-#bluesky-logo,
-#masto-logo,
-#reddit-logo,
-#x-logo {
+select {
+    background-color: white;
+    border: solid 1px #014a98ff;
     cursor: pointer;
-}
-
-#x-logo {
-    font-size: large;
-    font-weight: bold;
+    width: auto;
+    padding: 5px;
+    border-radius: 5px;
 }
 
 #title {
@@ -31,16 +28,4 @@ body {
     font-weight: bold;
     font-size: medium;
     margin: 5px;
-}
-
-#wrapper {
-    border: 1px solid #014a98ff;
-    border-radius: 5px;
-    width: 210px;
-    padding: 10px;
-    margin-top: 5%;
-}
-
-#wrapper:hover {
-    border-color: #017bfe
 }

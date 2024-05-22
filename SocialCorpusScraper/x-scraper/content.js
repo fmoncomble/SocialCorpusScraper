@@ -302,7 +302,7 @@ function scrape() {
                         );
                         let tweetRelUrl =
                             tweetUrlContainer.getAttribute('href');
-                        let tweetUrl = `https://twitter.com${tweetRelUrl}`;
+                        let tweetUrl = `https://x.com${tweetRelUrl}`;
 
                         let status = element[index]
                             .querySelector('div[data-testid="tweetText"]')

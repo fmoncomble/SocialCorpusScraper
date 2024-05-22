@@ -9,48 +9,24 @@
 
     <body>
         <div id="title">SocialCorpusScraper</div>
-        <div id="version-div">v0.4.3</div>
+        <div id="version-div">v0.4.4</div>
         <br />
-        <div id="wrapper">
-            <div id="bluesky-logo">
-                <img
-                    src="blueskyscraper/bluesky_banner.svg"
-                    width="200"
-                    fill="currentColor"
-                />
-            </div>
-        </div>
-        <div id="wrapper">
-            <div id="masto-logo">
-                <img
-                    src="mastoscraper/mastoscraper-logo.svg"
-                    width="200"
-                    fill="currentColor"
-                />
-            </div>
-        </div>
-        <div id="wrapper">
-            <div id="reddit-logo">
-                <img
-                    src="redditscraper/Reddit_Lockup.svg"
-                    width="200"
-                    fill="currentColor"
-                />
-            </div>
-        </div>
-        <div id="wrapper">
-            <div>
-                <div id="x-logo">𝕏-Scraper</div>
-                <div id="error-msg" style="display: none">
-                    To use <b>𝕏-Scraper</b>,
-                    <br />
-                    perform an
-                    <a href="https://x.com/search-advanced/" target="_blank"
-                        >𝕏/Twitter search</a
-                    >
-                    first
-                </div>
-            </div>
+        <select id="module-select">
+            <option value="">- Select module -</option>
+            <option value="bsky">BlueskyScraper</option>
+            <option value="masto">MastoScraper</option>
+            <option value="reddit">RedditScraper</option>
+            <option value="twitter">𝕏-Scraper</option>
+        </select>
+        <div id="error-msg" style="display: none">
+            <br />
+            To use <b>𝕏-Scraper</b>,
+            <br />
+            perform an
+            <a href="https://x.com/search-advanced/" target="_blank"
+                >𝕏/Twitter search</a
+            >
+            first
         </div>
     </body>
 </html>

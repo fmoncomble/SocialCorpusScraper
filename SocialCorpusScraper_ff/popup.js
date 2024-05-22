@@ -1,45 +1,45 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const bskyStart = document.getElementById('bluesky-logo');
-    const mastoStart = document.getElementById('masto-logo');
-    const redditStart = document.getElementById('reddit-logo');
-    const xStart = document.getElementById('x-logo');
+    const moduleSelect = document.getElementById('module-select');
     const errorMsg = document.getElementById('error-msg');
 
-    bskyStart.addEventListener('click', function () {
-        const blueskyscraperUrl = 'blueskyscraper/blueskyscraper.html';
-        const url = chrome.runtime.getURL(blueskyscraperUrl);
-        chrome.tabs.create({ url: url });
-        window.close();
-    });
+    const blueskyscraperUrl = 'blueskyscraper/blueskyscraper.html';
+    const mastoscraperUrl = 'mastoscraper/mastoscraper.html';
+    const redditscraperUrl = 'redditscraper/redditscraper.html';
 
-    mastoStart.addEventListener('click', function () {
-        const mastoscraperUrl = 'mastoscraper/mastoscraper.html';
-        const url = chrome.runtime.getURL(mastoscraperUrl);
-        chrome.tabs.create({ url: url });
-        window.close();
-    });
-
-    redditStart.addEventListener('click', function () {
-        const redditscraperUrl = 'redditscraper/redditscraper.html';
-        const url = chrome.runtime.getURL(redditscraperUrl);
-        chrome.tabs.create({ url: url });
-        window.close();
-    });
-
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-        const tab = tabs[0];
-        const url = tab ? tab.url : '';
-        if (!url.includes('twitter.com/search?')) {
-            console.log('Not an X search page');
-            errorMsg.style.display = 'inline-block';
-            xStart.style.display = 'none';
+    moduleSelect.addEventListener('change', () => {
+        const module = moduleSelect.value;
+        let url;
+        if (module === 'twitter') {
+            chrome.tabs.query(
+                { active: true, currentWindow: true },
+                function (tabs) {
+                    const tab = tabs[0];
+                    const url = tab ? tab.url : '';
+                    if (!url.includes('x.com/search?')) {
+                        console.log('Not an X search page');
+                        errorMsg.style.display = 'inline-block';
+                    } else {
+                        console.log('X search page detected');
+                        errorMsg.style.display = 'none';
+                        injectXModal();
+                        window.close();
+                    }
+                }
+            );
         } else {
-            console.log('X search page detected');
-            errorMsg.style.display = 'none';
+            if (module === 'bsky') {
+                url = blueskyscraperUrl;
+            } else if (module === 'masto') {
+                url = mastoscraperUrl;
+            } else if (module === 'reddit') {
+                url = redditscraperUrl;
+            }
+            chrome.tabs.create({ url: url });
+            window.close();
         }
     });
 
-    xStart.addEventListener('click', function () {
+    function injectXModal() {
         chrome.tabs.query(
             { active: true, currentWindow: true },
             function (tabs) {
@@ -54,6 +54,5 @@ document.addEventListener('DOMContentLoaded', function () {
                 );
             }
         );
-        window.close();
-    });
+    }
 });
