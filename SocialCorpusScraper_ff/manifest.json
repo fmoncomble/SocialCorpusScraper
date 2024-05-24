@@ -1,13 +1,13 @@
 {
     "manifest_version": 2,
     "name": "SocialCorpusScraper",
-    "version": "0.4.5",
+    "version": "0.4.6",
     "description": "A browser extension to scrape social media posts",
     "homepage_url": "https://fmoncomble.github.io/socialcorpusscraper/",
     "permissions": ["activeTab", "tabs", "storage", "clipboardWrite", "<all_urls>"],
     "content_scripts": [
         {
-            "matches": ["*://twitter.com/*"],
+            "matches": ["*://twitter.com/*", "*://x.com/*"],
             "js": ["x-scraper/content.js", "xlsx.full.min.js"],
             "css": ["x-scraper/content.css"]
         },
