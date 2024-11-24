@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
+    const versionDiv = document.getElementById('version-div');
+    const manifest = chrome.runtime.getManifest();
+    versionDiv.textContent = `${manifest.version}`;
+    
     const moduleSelect = document.getElementById('module-select');
     const errorMsg = document.getElementById('error-msg');
 
