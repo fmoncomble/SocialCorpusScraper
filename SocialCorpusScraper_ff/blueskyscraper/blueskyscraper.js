@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     async function buildQueryUrl() {
         queryUrl =
-            'https://lionsmane.us-east.host.bsky.network/xrpc/app.bsky.feed.searchPosts?';
+            'https://bsky.social/xrpc/app.bsky.feed.searchPosts?';
 
         // Concatenate query URL from search elements
         let keywords = keywordsInput.value;
