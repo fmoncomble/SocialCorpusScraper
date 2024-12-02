@@ -29,3 +29,22 @@ select {
     font-size: medium;
     margin: 5px;
 }
+
+.bsky-modules {
+    margin: 5px 0;
+}
+
+button {
+    color: #1185feff;
+    border: solid 1px #1185feff;
+    background-color: white;
+    margin: 5px;
+    width: 133px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #e6f2ff;
+}

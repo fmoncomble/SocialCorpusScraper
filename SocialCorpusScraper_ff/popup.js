@@ -2,11 +2,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const versionDiv = document.getElementById('version-div');
     const manifest = chrome.runtime.getManifest();
     versionDiv.textContent = `${manifest.version}`;
-    
+
     const moduleSelect = document.getElementById('module-select');
     const errorMsg = document.getElementById('error-msg');
 
     const blueskyscraperUrl = 'blueskyscraper/blueskyscraper.html';
+    const blueskystreamerUrl = 'blueskyscraper/blueskystreamer.html';
     const mastoscraperUrl = 'mastoscraper/mastoscraper.html';
     const redditscraperUrl = 'redditscraper/redditscraper.html';
 
@@ -34,14 +35,25 @@ document.addEventListener('DOMContentLoaded', function () {
             errorMsg.style.display = 'none';
         } else {
             if (module === 'bsky') {
-                url = blueskyscraperUrl;
+                const bskyModulesDiv = document.getElementById('bsky-modules');
+                bskyModulesDiv.style.display = 'block';
+                const searchBtn = document.getElementById('search-btn');
+                const streamBtn = document.getElementById('stream-btn');
+                searchBtn.onclick = () => {
+                    chrome.tabs.create({ url: blueskyscraperUrl });
+                    window.close();
+                };
+                streamBtn.onclick = () => {
+                    chrome.tabs.create({ url: blueskystreamerUrl });
+                    window.close();
+                };
             } else if (module === 'masto') {
-                url = mastoscraperUrl;
+                chrome.tabs.create({ url: mastoscraperUrl });
+                window.close();
             } else if (module === 'reddit') {
-                url = redditscraperUrl;
+                chrome.tabs.create({ url: redditscraperUrl });
+                window.close();
             }
-            chrome.tabs.create({ url: url });
-            window.close();
         }
     });
 

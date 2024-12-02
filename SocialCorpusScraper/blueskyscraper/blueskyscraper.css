@@ -2,18 +2,29 @@ html {
     border: none;
     border-radius: 10px;
     width: auto;
+    text-align: center;
 }
 
 body {
-    margin-left: 10%;
     color: black;
     background-color: white;
     text-align: center;
     font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol',sans-serif;
     font-size: small;
-    width: 500px;
     height: auto;
     padding: 10px;
+}
+
+div.header {
+    color:rgb(16, 131, 254);
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+div.bluesky-logo {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
 }
 
 div#version-div {
@@ -168,7 +179,6 @@ div#auth-container {
 }
 
 div#search-container {
-    text-align: left;
     margin-left: 35.5px;
 }
 

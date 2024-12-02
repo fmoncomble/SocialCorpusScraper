@@ -371,8 +371,9 @@ document.addEventListener('DOMContentLoaded', async function () {
                 authUnfold.style.display = 'none';
                 throw new Error('User needs to authorize app');
             } else if (!response || !response.ok) {
+                const errorData = await response.json();
                 window.alert(
-                    `Error fetching results: status ${response.status}`
+                    `Error fetching results: "${errorData.message}"`
                 );
                 searchMsg.style.display = 'none';
                 throw new Error('Could not fetch search results.');
@@ -532,8 +533,9 @@ document.addEventListener('DOMContentLoaded', async function () {
                     );
                     throw new Error('Could not fetch: not authenticated');
                 } else if (!response.ok) {
+                    const errorData = await response.json();
                     window.alert(
-                        `Error fetching results: HTTP error ${response.status}`
+                        `Error fetching results: "${errorData.message}"`
                     );
                     throw new Error(
                         'HTTP error, could not fetch search results'

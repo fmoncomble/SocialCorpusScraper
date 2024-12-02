@@ -10,13 +10,16 @@
     </head>
 
     <body>
-        <div class="bluesky-logo">
-            <img
-                src="bluesky_banner.svg"
-                width="300"
-                fill="currentColor"
-            />
-            <div id="version-div">v0.2</div>
+        <div class="header">
+            <div class="bluesky-logo">
+                <img
+                    src="bluesky_banner.svg"
+                    width="300"
+                    fill="currentColor"
+                />
+                <div id="version-div">0.3</div>
+            </div>
+            <div class="subtitle">Filtered search module</div>
         </div>
         <br />
         <!-- Authentication container -->
@@ -64,7 +67,9 @@
         </div>
         <div id="search-container">
             <div>
-                <label for="keywords" class="bluesky-scraper">All these words: </label>
+                <label for="keywords" class="bluesky-scraper"
+                    >All these words:
+                </label>
                 <input
                     id="keywords"
                     class="bluesky-scraper"
@@ -86,7 +91,9 @@
                 />
             </div>
             <div>
-                <label for="since" class="bluesky-scraper">Since (inclusive): </label>
+                <label for="since" class="bluesky-scraper"
+                    >Since (inclusive):
+                </label>
                 <input
                     id="since"
                     name="since"
@@ -95,7 +102,9 @@
                 />
             </div>
             <div>
-                <label for="until" class="bluesky-scraper">Until (inclusive): </label>
+                <label for="until" class="bluesky-scraper"
+                    >Until (inclusive):
+                </label>
                 <input
                     id="until"
                     name="until"
@@ -114,10 +123,14 @@
                 />
             </div>
             <div>
-                <label for="lang" class="bluesky-scraper"><a
-                    href="https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes"
-                    target="_blank" title="List of 2-letter ISO language codes"
-                    >Language:</a></label>
+                <label for="lang" class="bluesky-scraper"
+                    ><a
+                        href="https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes"
+                        target="_blank"
+                        title="List of 2-letter ISO language codes"
+                        >Language:</a
+                    ></label
+                >
                 <input
                     id="lang"
                     name="lang"
@@ -139,7 +152,7 @@
             <div>
                 <label for="sort-by" class="bluesky-scraper">Sort by: </label>
                 <select id="sort-by" name="sort-by" class="bluesky-scraper">
-                    <option value="latest" selected>Latest</option>
+                    <option value="latest">Latest</option>
                     <option value="top">Top</option>
                 </select>
             </div>
@@ -173,7 +186,7 @@
                     name="output-format"
                     style="display: inline-block"
                 >
-                    <option value="xml" selected>XML/XTZ</option>
+                    <option value="xml">XML/XTZ</option>
                     <option value="txt">TXT</option>
                     <option value="csv">CSV</option>
                     <option value="xlsx">XLSX</option>

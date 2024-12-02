@@ -1,0 +1,336 @@
+html {
+    border: none;
+    border-radius: 10px;
+    width: auto;
+    text-align: center;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    color: black;
+    background-color: white;
+    text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+        'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', sans-serif;
+    font-size: small;
+    height: auto;
+    padding: 10px;
+}
+
+a {
+    color: black;
+    font-weight: bold;
+}
+
+a:hover {
+    color: #666;
+}
+
+div.header {
+    color: rgb(16, 131, 254);
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+div.bluesky-logo {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+div#version-div {
+    font-size: x-small;
+}
+
+div.instructions {
+    font-size: small;
+}
+
+span.inst {
+    font-weight: bold;
+    padding: 2px 5px;
+    border-radius: 4px;
+}
+
+div.filters-header {
+    cursor: pointer;
+    font-weight: bold;
+    padding: 5px 20px;
+    width: fit-content;
+    text-align: center;
+    align-self: center;
+}
+
+span#filters-header:hover {
+    color: #666;
+}
+
+.header-element {
+    display: inline-block;
+    font-size: small;
+    margin: 0 5px;
+}
+
+button.header-element {
+    width: 130px;
+}
+
+div.filter-container {
+    margin: 5px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: small;
+}
+
+div.filter {
+    margin: 5px 0;
+    width: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    justify-content: left;
+    font-weight: bold;
+}
+
+div.checkbox-div {
+    display: flex;
+    flex-direction: row;
+}
+
+label.filter {
+    font-weight: normal;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin: 5px 0;
+    width: 500px;
+    text-align: left;
+}
+
+input.filter {
+    width: 320px;
+    padding: 10px 5px;
+    border: 1px solid rgb(16, 131, 254);
+    border-radius: 5px;
+    color: black;
+}
+
+input.max-posts {
+    width: 120px;
+}
+
+input[type='checkbox'].filter {
+    width: 15px;
+    height: 15px;
+    border: 1px solid rgb(16, 131, 254);
+    margin: 0 5px;
+}
+
+div.keyword-div {
+    border: 1px solid rgb(16, 131, 254);
+    border-radius: 5px;
+    padding: 10px;
+}
+
+button {
+    background-color: white;
+    color: rgb(16, 131, 254);
+    padding: 10px 20px;
+    margin: 8px 5px;
+    border: 1px solid rgb(16, 131, 254);
+    cursor: pointer;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.btn-1 {
+    color: rgb(16, 131, 254);
+    border: 1px solid rgb(16, 131, 254);
+}
+
+button.btn-1:hover {
+    background-color: #e6f2ff;
+    border-color: rgb(1, 104, 213);
+    color: rgb(1, 104, 213);
+}
+
+button.reset-btn {
+    border-color: #cc0000;
+    background-color: #cc0000;
+    color: white;
+    width: 150px;
+}
+button.reset-btn:hover {
+    border-color: #990000;
+    background-color: #990000;
+}
+
+button.dl-btn {
+    border: 1px solid green;
+    color: green;
+    min-width: 150px;
+}
+button.dl-btn:hover {
+    border-color: darkgreen;
+    color: darkgreen;
+}
+
+.stop-btn {
+    border-color: #cc0000;
+    background-color: #cc0000;
+    color: white;
+}
+
+button.stop-btn:hover {
+    border-color: #990000;
+    background-color: #990000;
+    color: white;
+}
+
+button:disabled,
+button:disabled:hover {
+    border-color: #666;
+    color: #666;
+    cursor: not-allowed;
+}
+
+div#wrapper {
+    flex: 1;
+    max-height: 500px;
+    flex-direction: column;
+    width: 80%;
+    margin: 10px auto;
+    padding: 10px;
+    background-color: #eee;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    text-align: center;
+    /* overflow: scroll;
+    scrollbar-width: none; */
+    box-shadow: 0 0 10px 0 #ccc;
+}
+
+div#preview-container {
+    max-height: 100%;
+    overflow: scroll;
+    scrollbar-width: none;
+}
+
+div.post-container {
+    margin: 0 auto;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid darkblue;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+div.post-container:hover {
+    background-color: #e6f2ff;
+}
+
+div.post-info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+div.post-user {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+img.post-user-img {
+    height: 25px;
+    width: 25px;
+    border-radius: 4px;
+}
+
+span.post-user-name {
+    font-weight: bold;
+    margin: 0 5px;
+}
+
+div.post-date {
+    color: gray;
+    font-size: small;
+    text-align: left;
+}
+
+.spinner {
+    width: 15px;
+    height: 15px;
+    border: 3px solid #ccc;
+    border-left: 3px solid black;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.spinner,
+.counter {
+    margin: 0 5px;
+    vertical-align: middle;
+}
+
+dialog {
+    width: 50%;
+    height: 80vh;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 0 10px 0 #aaa;
+}
+
+dialog div.close-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    cursor: pointer;
+}
+
+dialog div#dl-container {
+    height: 90%;
+}
+
+dialog div#keys-container {
+    height: 90%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #eee;
+    margin: 10px 0;
+    overflow-y: scroll;
+    text-align: left;
+}
+
+.dl-ui {
+    width: auto;
+    height: 30px;
+    padding: 5px;
+    border: solid 1px rgb(16, 131, 254);
+    background-color: white;
+    border-radius: 5px;
+    font-size: medium;
+    font-weight: normal;
+    color: rgb(16, 131, 254);
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.dl-ui:hover {
+    background-color: rgba(16, 131, 254, 0.1);
+}
