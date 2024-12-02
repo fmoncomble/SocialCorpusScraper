@@ -1,9 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Set version
-    const versionDiv = document.getElementById('version-div');
-    const version = chrome.runtime.getManifest().version;
-    versionDiv.textContent = `v${version}`;
-
     // Declare page elements
     const maxPostsInput = document.getElementById('max-posts');
     const filtersHeader = document.getElementById('filters-header');
@@ -430,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     console.error(error);
                 }
                 const postText = postElement.querySelector('.post-text');
-                postText.textContent = text;
+                postText.innerHTML = text;
                 previewContainer.appendChild(postElement);
                 previewContainer.scrollTop = previewContainer.scrollHeight;
             }
