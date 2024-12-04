@@ -17,6 +17,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const exactPhraseInput = document.getElementById('exact-phrase-filter');
     const excludeKWInput = document.getElementById('exclude-keyword-filter');
     const streamBtn = document.getElementById('stream-btn');
+    const counterDiv = document.getElementById('counter-div');
+    const counterSpinner = document.getElementById('counter-spinner');
     const postCounterSpan = document.getElementById('post-counter');
     const dlContainer = document.getElementById('dl-container');
     const dlBtn = document.getElementById('dl-btn');
@@ -43,6 +45,17 @@ document.addEventListener('DOMContentLoaded', function () {
         if (regexpCheckbox.checked) {
             regexpDiv.style.display = 'flex';
             keywordDiv.style.display = 'none';
+            let regexp = '';
+            regexpInput.addEventListener('input', () => {
+                regexp = regexpInput.value;
+            });
+            wholewordsCheckbox.addEventListener('change', () => {
+                if (wholewordsCheckbox.checked) {
+                    regexpInput.value = `\\b${regexp}\\b`;
+                } else {
+                    regexpInput.value = regexp;
+                }
+            });
         } else {
             regexpDiv.style.display = 'none';
             keywordDiv.style.display = 'flex';
@@ -82,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Function to update the post counter
     function updateMatchCounter() {
-        postCounterSpan.textContent = `Total posts: ${matchCounter}`;
+        postCounterSpan.textContent = `${matchCounter}`;
     }
 
     // Event listener for the stream button
@@ -148,7 +161,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 if (
-                    (handleInput.value && dids.length > 0 && !dids.includes(null)) ||
+                    (handleInput.value &&
+                        dids.length > 0 &&
+                        !dids.includes(null)) ||
                     !handleInput.value
                 ) {
                     socket = new WebSocket(wsUrl);
@@ -169,7 +184,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     filtersHeader.style.display = 'none';
                     filterContainer.style.display = 'none';
                     wrapper.style.display = 'flex';
-                    postCounterSpan.style.display = 'block';
+                    counterDiv.style.display = 'flex';
+                    postCounterSpan.style.display = 'inline-block';
+                    counterSpinner.style.display = 'inline-block';
                     if (!startTime) {
                         startTime = Date.now();
                     }
@@ -188,6 +205,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     console.log('Disconnected from the WebSocket server');
                     streamBtn.textContent = 'Resume streaming';
                     streamBtn.classList.remove('stop-btn');
+                    counterSpinner.style.display = 'none';
                 });
 
                 socket.addEventListener('error', function (error) {
@@ -244,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     regexp = new RegExp(regexpInput.value, 'gui');
                 }
                 found = text.match(regexp);
-            } else {
+            } else if (!regexpCheckbox.checked) {
                 let anyKW = null;
                 let allKW = null;
                 let exactPhrase = null;
@@ -404,7 +422,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 postDate = postDate.toLocaleString(locale, options);
                 postDateDiv.textContent = postDate;
                 const postUser = postElement.querySelector('.post-user');
-                const postUserImg = postElement.querySelector('img.post-user-img');
+                const postUserImg =
+                    postElement.querySelector('img.post-user-img');
                 const postUserName = postUser.querySelector('span');
                 try {
                     const url = `https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=${did}`;
@@ -737,6 +756,18 @@ document.addEventListener('DOMContentLoaded', function () {
             postData += '>';
             postData += `<lb></lb><ref target="${p.url}">Link to post</ref><lb></lb>`;
             let text = p['record-text'];
+            const urlRegex =
+                /(?:https?|ftp):\/\/[-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[-A-Za-z0-9+&@#\/%=~_|]/;
+            const links = text.match(urlRegex);
+            if (links) {
+                for (l of links) {
+                    const newLink = l.replace(
+                        /(.+)/,
+                        `<ref target="$1">$1</ref>`
+                    );
+                    text = text.replace(l, newLink);
+                }
+            }
             postData += `<lb></lb>${text.replaceAll(/\n/g, '<lb></lb>')}`;
             postData += '</skeet><lb></lb><lb></lb>\n';
             xml += postData;

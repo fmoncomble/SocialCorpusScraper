@@ -2,7 +2,6 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <link href="favicon.ico" rel="icon" type="image/x-icon" />
         <title>BlueskyScraper</title>
         <link rel="stylesheet" type="text/css" href="blueskystreamer.css" />
         <script src="blueskystreamer.js"></script>
@@ -16,7 +15,7 @@
                     width="300"
                     fill="currentColor"
                 />
-                <div id="version-div">v0.3</div>
+                <div id="version-div"></div>
             </div>
             <div class="subtitle">Live stream module</div>
         </div>
@@ -99,6 +98,17 @@
                         />Regexp</label
                     >
                     <label
+                        for="wholewords-checkbox"
+                        class="filter"
+                        style="align-items: center; justify-content: left"
+                        ><input
+                            type="checkbox"
+                            name="wholewords-checkbox"
+                            id="wholewords-checkbox"
+                            class="filter"
+                        />Whole words</label
+                    >
+                    <label
                         for="case-checkbox"
                         class="filter"
                         style="align-items: center; justify-content: center"
@@ -122,17 +132,6 @@
                     /></label>
                 </div>
                 <div id="keyword-div" class="filter">
-                    <label
-                        for="wholewords-checkbox"
-                        class="filter"
-                        style="align-items: center; justify-content: left"
-                        ><input
-                            type="checkbox"
-                            name="wholewords-checkbox"
-                            id="wholewords-checkbox"
-                            class="filter"
-                        />Whole words</label
-                    >
                     <label class="filter" for="keyword-filter"
                         >Any of these words:
                         <input
@@ -179,8 +178,18 @@
                 <button class="reset-btn" id="reset-btn">Reset</button>
             </div>
         </div>
-        <div>
-            <span id="post-counter" style="display: none">Total posts:</span>
+        <div id="counter-div" class="counter-div" style="display: none">
+            <span
+                id="counter-spinner"
+                class="spinner"
+                style="display: none"
+            ></span
+            ><span>Total posts:</span>
+            <span
+                id="post-counter"
+                class="counter"
+                style="display: none"
+            ></span>
         </div>
         <div>
             <span id="timer" style="display: none">Time elapsed:</span>
