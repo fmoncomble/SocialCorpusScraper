@@ -45,17 +45,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (regexpCheckbox.checked) {
             regexpDiv.style.display = 'flex';
             keywordDiv.style.display = 'none';
-            let regexp = '';
-            regexpInput.addEventListener('input', () => {
-                regexp = regexpInput.value;
-            });
-            wholewordsCheckbox.addEventListener('change', () => {
-                if (wholewordsCheckbox.checked) {
-                    regexpInput.value = `\\b${regexp}\\b`;
-                } else {
-                    regexpInput.value = regexp;
-                }
-            });
         } else {
             regexpDiv.style.display = 'none';
             keywordDiv.style.display = 'flex';
@@ -255,11 +244,14 @@ document.addEventListener('DOMContentLoaded', function () {
         ) {
             if (regexpCheckbox.checked && regexpInput.value) {
                 filters = true;
-                let regexp;
+                let regexp = regexpInput.value;
+                if (wholeWords) {
+                    regexp = `\\b${regexp}\\b`;
+                }
                 if (caseSensitive) {
-                    regexp = new RegExp(regexpInput.value, 'gu');
+                    regexp = new RegExp(regexp, 'gu');
                 } else {
-                    regexp = new RegExp(regexpInput.value, 'gui');
+                    regexp = new RegExp(regexp, 'gui');
                 }
                 found = text.match(regexp);
             } else if (!regexpCheckbox.checked) {

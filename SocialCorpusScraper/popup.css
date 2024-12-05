@@ -17,7 +17,6 @@ body {
 select {
     background-color: white;
     border: solid 1px #014a98ff;
-    cursor: pointer;
     width: auto;
     padding: 5px;
     border-radius: 5px;
