@@ -55,13 +55,16 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (!userToken) {
             return;
         }
-        const res = await fetch('https://bsky.social/xrpc/com.atproto.server.getSession', {
-            method: 'GET',
-            headers: {
-                Accept: 'application/json',
-                Authorization: `Bearer ${userToken}`,
-            },
-        });
+        const res = await fetch(
+            'https://bsky.social/xrpc/com.atproto.server.getSession',
+            {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${userToken}`,
+                },
+            }
+        );
         if (res.status !== 200) {
             await renewToken();
         }
@@ -232,10 +235,11 @@ document.addEventListener('DOMContentLoaded', async function () {
             console.error('Error:', error);
         }
     }
-    
+
     // Function to renew token
     async function renewToken() {
-        const url = 'https://bsky.social/xrpc/com.atproto.server.refreshSession';
+        const url =
+            'https://bsky.social/xrpc/com.atproto.server.refreshSession';
         try {
             const response = await fetch(url, {
                 method: 'POST',
@@ -291,8 +295,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
 
     async function buildQueryUrl() {
-        queryUrl =
-            'https://bsky.social/xrpc/app.bsky.feed.searchPosts?';
+        queryUrl = 'https://bsky.social/xrpc/app.bsky.feed.searchPosts?';
 
         // Concatenate query URL from search elements
         let keywords = keywordsInput.value;
@@ -570,6 +573,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                             .replaceAll('"', '&quot;')
                             .replaceAll("'", '&apos;');
                         text = text
+                            .replaceAll('&', '&amp;')
                             .replaceAll('<', '&lt;')
                             .replaceAll('>', '&gt;')
                             .replaceAll('"', '&quot;')
