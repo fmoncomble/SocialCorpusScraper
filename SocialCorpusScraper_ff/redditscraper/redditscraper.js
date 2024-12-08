@@ -807,7 +807,9 @@ document.addEventListener('DOMContentLoaded', async function () {
             resultCount = resultCount - 1;
             resultsMsg.textContent = resultCount + ' result(s) extracted';
             if (skippedItems > 0) {
-                const skippedItemsText = document.createTextNode(` — ${skippedItems} post(s) ignored: too long for XLSX`);
+                const skippedItemsText = document.createTextNode(
+                    ` — ${skippedItems} post(s) ignored: too long for XLSX`
+                );
                 resultsMsg.appendChild(skippedItemsText);
             }
             dlBtn.textContent = 'Download ' + fileFormat.toUpperCase();
@@ -961,12 +963,14 @@ document.addEventListener('DOMContentLoaded', async function () {
                             .replaceAll('"', '&quot;')
                             .replaceAll("'", '&apos;');
                         text = text
+                            .replaceAll('&', '&amp;')
                             .replaceAll('<', '&lt;')
                             .replaceAll('>', '&gt;')
                             .replaceAll('"', '&quot;')
                             .replaceAll("'", '&apos;')
                             .replaceAll('&nbsp;', ' ');
                         title = title
+                            .replaceAll('&', '&amp;')
                             .replaceAll('<', '&lt;')
                             .replaceAll('>', '&gt;')
                             .replaceAll('"', '&quot;')

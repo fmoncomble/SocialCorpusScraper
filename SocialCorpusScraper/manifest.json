@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
     "name": "SocialCorpusScraper",
-    "version": "0.5.4",
-    "version_name": "0.5.4",
+    "version": "0.5.5",
+    "version_name": "0.5.5",
     "description": "A browser extension to scrape social media posts",
     "homepage_url": "https://fmoncomble.github.io/socialcorpusscraper/",
     "permissions": ["activeTab", "tabs", "storage", "clipboardWrite"],
