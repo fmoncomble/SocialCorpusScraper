@@ -6,7 +6,8 @@
         <title>BlueskyScraper</title>
         <link rel="stylesheet" type="text/css" href="blueskyscraper.css" />
         <script src="blueskyscraper.js"></script>
-        <script src="../xlsx.full.min.js"></script>
+        <script src="polyfill.js"></script>
+        <script src="exceljs.min.js"></script>
     </head>
 
     <body>
@@ -17,7 +18,7 @@
                     width="300"
                     fill="currentColor"
                 />
-                <div id="version-div">0.3</div>
+                <div id="version-div">v0.4</div>
             </div>
             <div class="subtitle">Filtered search module</div>
         </div>
@@ -67,87 +68,128 @@
         </div>
         <div id="search-container">
             <div>
-                <label for="keywords" class="bluesky-scraper"
-                    >All these words:
+                <label for="keyword-search" class="bluesky-scraper radio">
+                    <input
+                        type="radio"
+                        id="keyword-search"
+                        name="search-type"
+                        checked
+                    />
+                    Keyword search
                 </label>
-                <input
-                    id="keywords"
-                    class="bluesky-scraper"
-                    name="keywords"
-                    type="text"
-                    placeholder="All these words"
-                />
-            </div>
-            <div>
-                <label for="this-phrase" class="bluesky-scraper"
-                    >Exact phrase:
+                <label for="author-dump" class="bluesky-scraper radio">
+                    <input type="radio" id="author-dump" name="search-type" />
+                    User history
                 </label>
-                <input
-                    id="this-phrase"
-                    class="bluesky-scraper"
-                    name="this-phrase"
-                    type="text"
-                    placeholder="Exact phrase"
-                />
             </div>
-            <div>
-                <label for="since" class="bluesky-scraper"
-                    >Since (inclusive):
-                </label>
-                <input
-                    id="since"
-                    name="since"
-                    class="bluesky-scraper"
-                    type="date"
-                />
-            </div>
-            <div>
-                <label for="until" class="bluesky-scraper"
-                    >Until (inclusive):
-                </label>
-                <input
-                    id="until"
-                    name="until"
-                    class="bluesky-scraper"
-                    type="date"
-                />
-            </div>
-            <div>
-                <label for="author" class="bluesky-scraper">Author: </label>
-                <input
-                    id="author"
-                    name="author"
-                    class="bluesky-scraper"
-                    type="text"
-                    placeholder="Author handle"
-                />
-            </div>
-            <div>
-                <label for="lang" class="bluesky-scraper"
-                    ><a
-                        href="https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes"
-                        target="_blank"
-                        title="List of 2-letter ISO language codes"
-                        >Language:</a
-                    ></label
-                >
-                <input
-                    id="lang"
-                    name="lang"
-                    class="bluesky-scraper"
-                    type="text"
-                    placeholder="Language ISO code"
-                />
-            </div>
-            <div>
-                <label for="tag" class="bluesky-scraper">Tags: </label>
-                <input
-                    id="tag"
-                    name="tag"
-                    class="bluesky-scraper"
-                    type="text"
-                    placeholder="Tags (separated with commas)"
-                />
+            <div id="input-container">
+                <div id="keyword-search-container">
+                    <div>
+                        <label for="keywords" class="bluesky-scraper"
+                            >All these words:
+                        </label>
+                        <input
+                            id="keywords"
+                            class="bluesky-scraper"
+                            name="keywords"
+                            type="text"
+                            placeholder="All these words"
+                        />
+                    </div>
+                    <div>
+                        <label for="this-phrase" class="bluesky-scraper"
+                            >Exact phrase:
+                        </label>
+                        <input
+                            id="this-phrase"
+                            class="bluesky-scraper"
+                            name="this-phrase"
+                            type="text"
+                            placeholder="Exact phrase"
+                        />
+                    </div>
+                    <div>
+                        <p>Optional parameters:</p>
+                    </div>
+                    <div>
+                        <label for="lang" class="bluesky-scraper"
+                            ><a
+                                href="https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes"
+                                target="_blank"
+                                title="List of 2-letter ISO language codes"
+                                >Language:</a
+                            ></label
+                        >
+                        <input
+                            id="lang"
+                            name="lang"
+                            class="bluesky-scraper"
+                            type="text"
+                            placeholder="Language ISO code"
+                        />
+                    </div>
+                    <div>
+                        <label for="tag" class="bluesky-scraper">Tags: </label>
+                        <input
+                            id="tag"
+                            name="tag"
+                            class="bluesky-scraper"
+                            type="text"
+                            placeholder="Tags (separated with commas)"
+                        />
+                    </div>
+                </div>
+                <div>
+                    <label for="author" class="bluesky-scraper">Author: </label>
+                    <input
+                        id="author"
+                        name="author"
+                        class="bluesky-scraper"
+                        type="text"
+                        placeholder="Author handle"
+                    />
+                </div>
+                <div id="include-replies-div" style="display: none">
+                    <label for="include-replies" class="bluesky-scraper radio">
+                        <input
+                            type="checkbox"
+                            id="include-replies"
+                            name="include-replies"
+                        />
+                        Include replies
+                    </label>
+                    <label for="include-reposts" class="bluesky-scraper radio">
+                        <input
+                            type="checkbox"
+                            id="include-reposts"
+                            name="include-reposts"
+                        />
+                        Include reposts
+                    </label>
+                    <p>Optional parameters:</p>
+                </div>
+                <div>
+                    <label for="since" class="bluesky-scraper"
+                        >Since (inclusive):
+                    </label>
+                    <input
+                        id="since"
+                        name="since"
+                        class="bluesky-scraper"
+                        type="date"
+                    />
+                </div>
+                <div>
+                    <label for="until" class="bluesky-scraper"
+                        >Until (inclusive):
+                    </label>
+                    <input
+                        id="until"
+                        name="until"
+                        class="bluesky-scraper"
+                        type="date"
+                    />
+                </div>
             </div>
             <div>
                 <label for="sort-by" class="bluesky-scraper">Sort by: </label>
@@ -175,27 +217,8 @@
         <!-- Extraction container -->
         <div id="extract-container" style="display: none">
             <div>
-                <label
-                    for="output-format"
-                    class="bluesky-scraper extract-options"
-                    >Choose output format:
-                </label>
-                <select
-                    id="output-format"
-                    class="bluesky-scraper"
-                    name="output-format"
-                    style="display: inline-block"
-                >
-                    <option value="xml">XML/XTZ</option>
-                    <option value="txt">TXT</option>
-                    <option value="csv">CSV</option>
-                    <option value="xlsx">XLSX</option>
-                    <option value="json">JSON</option>
-                </select>
-            </div>
-            <div>
                 <label for="max-results" class="bluesky-scraper extract-options"
-                    >Max results:
+                    >Max results (optional):
                 </label>
                 <input
                     name="max-results"
@@ -235,13 +258,6 @@
             <!-- Download container -->
             <div id="dl-container">
                 <button
-                    id="dl-btn"
-                    class="bluesky-scraper"
-                    style="display: none"
-                >
-                    Download XML
-                </button>
-                <button
                     id="reset-btn"
                     class="bluesky-scraper"
                     style="display: none"
@@ -251,5 +267,24 @@
                 <div id="dl-result"></div>
             </div>
         </div>
+        <!-- Download dialog -->
+        <dialog id="dl-dialog">
+            <div class="close-btn">❌</div>
+            <div id="dl-container">
+                <span id="post-count"></span>
+                Select data to include:
+                <div id="keys-container"></div>
+            </div>
+            <div id="options-container">
+                <select id="format-select" class="dl-ui">
+                    <option value="xml">XML/XTZ</option>
+                    <option value="txt">TXT</option>
+                    <option value="csv">CSV</option>
+                    <option value="xlsx">XLSX</option>
+                    <option value="json">JSON</option>
+                </select>
+                <button id="dl-confirm-btn" class="dl-ui">Download</button>
+            </div>
+        </dialog>
     </body>
 </html>

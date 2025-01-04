@@ -51,6 +51,14 @@ div#instructions-container {
     text-align: left;
 }
 
+div#input-container {
+    background-color: #eee;
+    border-radius: 5px;
+    padding: 5px 1em;
+    width: 500px;
+    margin: 5px auto;
+}
+
 button.bluesky-scraper,
 select.bluesky-scraper {
     color: #1185feff;
@@ -59,9 +67,12 @@ select.bluesky-scraper {
     height: 32px;
     width: 100px;
     border-radius: 4px;
-    cursor: pointer;
     margin: 5px;
     text-align: center;
+}
+
+button {
+    cursor: pointer;
 }
 
 select#sort-by {
@@ -78,13 +89,28 @@ label.bluesky-scraper {
     display: inline-block;
 }
 
-button#abort-btn {
+label.radio {
+    width: auto;
+    margin-bottom: 5px;
+}
+
+input[type="radio"] {
+    vertical-align: bottom;
+}
+
+input[type="checkbox"] {
+    vertical-align: middle;
+}
+
+button#abort-btn,
+button#reset-btn {
     color: #e60000;
     border-color: #e60000;
     display: none;
 }
 
-button#abort-btn:hover {
+button#abort-btn:hover,
+button#reset-btn:hover {
     border-color: #ff8080;
     background-color: #ffe6e6;
 }
@@ -178,9 +204,9 @@ div#auth-container {
     width: 500px;
 }
 
-div#search-container {
+/* div#search-container {
     margin-left: 35.5px;
-}
+} */
 
 .search-item {
     display: flex;
@@ -257,4 +283,54 @@ p#dismiss {
     font-weight: bold;
     text-decoration: underline;
     cursor: pointer;
+}
+dialog {
+    width: 50%;
+    height: 80vh;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 0 10px 0 #aaa;
+}
+
+dialog div.close-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    cursor: pointer;
+}
+
+dialog div#dl-container {
+    height: 90%;
+}
+
+dialog div#keys-container {
+    height: 90%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #eee;
+    margin: 10px 0;
+    overflow-y: scroll;
+    text-align: left;
+}
+
+dialog label {
+    display: inline-block;
+}
+
+.dl-ui {
+    width: auto;
+    height: 30px;
+    padding: 5px;
+    border: solid 1px rgb(16, 131, 254);
+    background-color: white;
+    border-radius: 5px;
+    font-size: medium;
+    font-weight: normal;
+    color: rgb(16, 131, 254);
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.dl-ui:hover {
+    background-color: rgba(16, 131, 254, 0.1);
 }

@@ -3,9 +3,11 @@
     <head>
         <meta charset="utf-8" />
         <title>BlueskyScraper</title>
+        <link href="favicon.ico" rel="icon" type="image/x-icon" />
         <link rel="stylesheet" type="text/css" href="blueskystreamer.css" />
         <script src="blueskystreamer.js"></script>
-        <script src="../xlsx.full.min.js"></script>
+        <script src="polyfill.js"></script>
+        <script src="exceljs.min.js"></script>
     </head>
     <body>
         <div class="header">
@@ -15,7 +17,7 @@
                     width="300"
                     fill="currentColor"
                 />
-                <div id="version-div">0.3</div>
+                <div id="version-div">v0.4</div>
             </div>
             <div class="subtitle">Live stream module</div>
         </div>

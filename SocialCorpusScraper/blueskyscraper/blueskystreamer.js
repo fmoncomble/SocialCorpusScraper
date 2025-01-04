@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // Set version
+    // const versionDiv = document.getElementById('version-div');
+    // const version = chrome.runtime.getManifest().version;
+    // versionDiv.textContent = `v${version}`;
+
     // Declare page elements
     const maxPostsInput = document.getElementById('max-posts');
     const filtersHeader = document.getElementById('filters-header');
@@ -124,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 async function getDids(userHandles) {
                     const promises = userHandles.map(async (handle) => {
                         handle = handle.trim();
-                        const url = `https://bsky.social/xrpc/com.atproto.repo.describeRepo?repo=${handle}`;
+                        const url = `https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=${handle}`;
                         try {
                             const res = await fetch(url);
                             if (!res.ok) {
@@ -541,7 +546,7 @@ document.addEventListener('DOMContentLoaded', function () {
             container.textContent = '';
             generateListTree(keyTree, container);
             const checkboxes = dlDialog.querySelectorAll(
-                'input[type="checkbox"]'
+                'input[type="checkbox"].data-item'
             );
             checkboxes.forEach((checkbox) => {
                 updateParentCheckboxes(checkbox);
@@ -567,6 +572,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const li = document.createElement('li');
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
+                checkbox.classList.add('data-item');
                 checkbox.id = key;
                 checkbox.name = key;
 
@@ -643,6 +649,26 @@ document.addEventListener('DOMContentLoaded', function () {
     let dlFormat = 'xml';
     dlSelect.addEventListener('change', () => {
         dlFormat = dlSelect.value;
+        if (dlFormat === 'xlsx') {
+            const tableFormat = document.createElement('label');
+            tableFormat.htmlFor = 'table-checkbox';
+            tableFormat.textContent = 'Format as table';
+            tableFormat.style.display = 'block';
+            const tableCheckbox = document.createElement('input');
+            tableCheckbox.type = 'checkbox';
+            tableCheckbox.id = 'table-checkbox';
+            tableCheckbox.style.verticalAlign = 'middle';
+            tableCheckbox.checked = true;
+            tableFormat.appendChild(tableCheckbox);
+            dlConfirmBtn.after(tableFormat);
+        } else {
+            const tableFormat = document.querySelector(
+                'label[for="table-checkbox"]'
+            );
+            if (tableFormat) {
+                tableFormat.remove();
+            }
+        }
     });
 
     dlConfirmBtn.addEventListener('click', () => {
@@ -668,7 +694,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Function to build the array of posts
     function buildData() {
         posts = [];
-        const checkboxes = dlDialog.querySelectorAll('input[type="checkbox"]');
+        const checkboxes = dlDialog.querySelectorAll('input[type="checkbox"].data-item');
         for (let r of records) {
             let post = {};
             for (let checkbox of checkboxes) {
@@ -797,10 +823,91 @@ document.addEventListener('DOMContentLoaded', function () {
         anchor.click();
     }
 
-    function downloadXlsx() {
-        let file = XLSX.utils.book_new();
-        let sheet = XLSX.utils.json_to_sheet(posts);
-        XLSX.utils.book_append_sheet(file, sheet, 'bsky_stream');
-        XLSX.writeFile(file, 'bsky_stream.xlsx');
+    async function downloadXlsx() {
+        let widths = [];
+        Object.keys(posts[0]).forEach((key) => {
+            widths.push({ key: key, widths: [] });
+        });
+        for (let p of posts) {
+            for (let [key, value] of Object.entries(p)) {
+                if (value) {
+                    let vString = value.toString();
+                    widths
+                        .find((w) => w.key === key)
+                        .widths.push(key.length, vString.length);
+                }
+            }
+        }
+        widths = widths.map((w) => {
+            w.widths.sort((a, b) => b - a);
+            return w.widths[0];
+        });
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('bsky_scrape');
+        worksheet.columns = Object.keys(posts[0]).map((key) => {
+            return { header: key, key: key, width: widths.shift() };
+        });
+
+        const rows = [];
+        function isDate(value) {
+            const regexp = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d{3}Z)?/;
+            return regexp.test(value);
+        }
+        for (let p of posts) {
+            let row = [];
+            for (let [key, value] of Object.entries(p)) {
+                if (isDate(value)) {
+                    value = new Date(value);
+                } else if (key === 'url') {
+                    value = {
+                        text: value,
+                        hyperlink: value,
+                        tooltip: 'Link to post',
+                    };
+                }
+                row.push(value);
+            }
+            rows.push(row);
+        }
+        const tableCheckbox = document.getElementById('table-checkbox');
+        if (tableCheckbox.checked) {
+            worksheet.addTable({
+                name: 'bsky_scrape',
+                ref: 'A1',
+                headerRow: true,
+                totalsRow: false,
+                style: {
+                    theme: 'TableStyleMedium9',
+                    showRowStripes: true,
+                },
+                columns: worksheet.columns.map((col) => ({
+                    name: col.header,
+                    filterButton: true,
+                })),
+                rows: rows,
+            });
+        } else {
+            worksheet.addRows(rows);
+        }
+        const urlCol = worksheet.getColumn('url');
+        if (urlCol) {
+            urlCol.eachCell(function (cell) {
+                if (cell.value && cell.value.hyperlink) {
+                    cell.style = {
+                        font: { color: { argb: 'ff0000ff' }, underline: true },
+                    };
+                }
+            });
+        }
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = 'bsky_stream.xlsx';
+        anchor.click();
     }
 });
