@@ -6,7 +6,7 @@ This is a 4-in-1 bundle of [BlueskyScraper](https://fmoncomble.github.io/bluesky
 ### Cite this program
 If you use this extension for your research, please reference it as follows:  
   
-Moncomble, F. (2024). *SocialCorpusScraper* (Version 0.5) [JavaScript]. Arras, France: Université d'Artois. Available at: https://fmoncomble.github.io/SocialCorpusScraper/
+Moncomble, F. (2025). *SocialCorpusScraper* (Version 0.6) [JavaScript]. Arras, France: Université d'Artois. Available at: https://fmoncomble.github.io/SocialCorpusScraper/
 
 ## Installation
 ### Firefox
