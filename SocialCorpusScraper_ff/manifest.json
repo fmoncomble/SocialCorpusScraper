@@ -5,7 +5,7 @@
     "version_name": "0.6",
     "description": "A browser extension to scrape social media posts",
     "homepage_url": "https://fmoncomble.github.io/socialcorpusscraper/",
-    "permissions": ["activeTab", "tabs", "storage", "clipboardWrite", "webRequest", "cookies"],
+    "permissions": ["activeTab", "tabs", "storage", "clipboardWrite", "webRequest"],
     "host_permissions": ["<all_urls>"],
     "content_scripts": [
         {
