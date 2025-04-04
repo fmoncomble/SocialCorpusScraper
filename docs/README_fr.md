@@ -17,7 +17,7 @@ Moncomble, F. (2025). *SocialCorpusScraper* (Version 0.6) [JavaScript]. Arras, F
   
 N'oubliez pas d'épingler l'extension à la barre d'outils.
 
-⚠️ Si vous avez déjà installé un ou plusieurs de 4 modules, il est préférable de les désactiver ou désinstaller pour éviter tout conflit.
+⚠️ Si vous avez déjà installé un ou plusieurs des 4 modules, il est préférable de les désactiver ou désinstaller pour éviter tout conflit.
  
 ## Mode d'emploi
 - Cliquez sur l'icône de l'extension dans la barre d'outils.
