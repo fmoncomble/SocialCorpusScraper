@@ -340,10 +340,22 @@ async function scrape(cursor) {
     let headers = new Headers();
     requestHeaders.forEach((h) => headers.append(h.name, h.value));
     let res = await fetch(url, { headers: headers });
+    if (!res.ok) {
+        console.error('Error: ', res);
+        return;
+    }
     let data = await res.json();
     let instructions =
         data.data.search_by_raw_query.search_timeline.timeline.instructions;
+    if (!instructions || instructions.length === 0) {
+        endScrape();
+        return;
+    }
     let entries = instructions[0].entries;
+    if (!entries || entries.length === 0) {
+        endScrape();
+        return;
+    }
     let tweets = entries.filter((e) => e.entryId.includes('tweet'));
     results.push(...tweets);
     if (maxTweets !== Infinity) {
@@ -438,7 +450,7 @@ function processResults(results) {
 function makeXml(tweets) {
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<text>\n`;
     tweets.forEach((t) => {
-        xml += `<lb></lb><tweet`;
+        xml += `<lb/><tweet`;
         for (const [key, value] of Object.entries(t)) {
             if (typeof value === 'string') {
                 t[key] = value
@@ -452,7 +464,7 @@ function makeXml(tweets) {
                 xml += ` ${key}="${value}"`;
             }
         }
-        xml += `><lb></lb><ref target="${t.url}">Link to tweet</ref><lb></lb>`;
+        xml += `><lb/><ref target="${t.url}">Link to tweet</ref><lb/>`;
         const urlRegex =
             /(?:https?|ftp):\/\/[-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[-A-Za-z0-9+&@#\/%=~_|]/;
         let text = t.text;
@@ -463,7 +475,7 @@ function makeXml(tweets) {
                 text = text.replace(l, newLink);
             }
         }
-        xml += `${text.replaceAll(/\n/g, '<lb></lb>')}</tweet><lb></lb>\n`;
+        xml += `${text.replaceAll(/\n/g, '<lb/>')}</tweet><lb/>\n`;
     });
     xml += `</text>`;
     const xmlBlob = new Blob([xml], { type: 'application/xml' });

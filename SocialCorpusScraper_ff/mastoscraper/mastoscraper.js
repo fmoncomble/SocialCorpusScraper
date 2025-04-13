@@ -983,12 +983,12 @@ document.addEventListener('DOMContentLoaded', async function () {
                         text = text.replaceAll('\n', ' ');
                         file =
                             file +
-                            `<lb></lb><lb></lb>
-<toot id="${id}" username="${username}" date="${date}" time="${time}"><lb></lb>
-<ref target="${url}">${url}</ref><lb></lb><lb></lb>
+                            `<lb/><lb/>
+<toot id="${id}" username="${username}" date="${date}" time="${time}"><lb/>
+<ref target="${url}">${url}</ref><lb/><lb/>
 ${text}
 </toot>
-<lb></lb><lb></lb>`;
+<lb/><lb/>`;
                     } else if (fileFormat === 'txt') {
                         file = file + `\n\n${text}\n\n——————`;
                     } else if (fileFormat === 'json') {

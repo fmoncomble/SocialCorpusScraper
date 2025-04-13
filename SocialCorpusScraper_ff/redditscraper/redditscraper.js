@@ -988,15 +988,15 @@ document.addEventListener('DOMContentLoaded', async function () {
                                 text = text.replace(l, newLink);
                             }
                         }
-                        text = text.replaceAll('\n', '<lb></lb>');
+                        text = text.replaceAll('\n', '<lb/>');
                         file =
                             file +
-                            `<lb></lb><lb></lb>
-<result id="${id}" username="${username}" date="${date}" time="${time}" title="${title}"><lb></lb>
-<ref target="${url}">${url}</ref><lb></lb><lb></lb>
+                            `<lb/><lb/>
+<result id="${id}" username="${username}" date="${date}" time="${time}" title="${title}"><lb/>
+<ref target="${url}">${url}</ref><lb/><lb/>
 ${text}
 </result>
-<lb></lb><lb></lb>`;
+<lb/><lb/>`;
                     } else if (fileFormat === 'txt') {
                         file = file + `\n\n${title}\n\n${text}\n\n——————`;
                     } else if (fileFormat === 'json') {

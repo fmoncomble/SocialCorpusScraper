@@ -923,7 +923,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         spinner.style.display = 'inline-block';
         let xml = '<Text>';
         for (let p of posts) {
-            let postData = '<lb></lb>\n<skeet';
+            let postData = '<lb/>\n<skeet';
             for (let [key, value] of Object.entries(p)) {
                 if (typeof value === 'string') {
                     p[key] = value
@@ -939,7 +939,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 }
             }
             postData += '>';
-            postData += `<lb></lb><ref target="${p.url}">Link to post</ref><lb></lb>`;
+            postData += `<lb/><ref target="${p.url}">Link to post</ref><lb/>`;
             let text = p['record-text'];
             const urlRegex =
                 /(?:https?|ftp):\/\/[-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[-A-Za-z0-9+&@#\/%=~_|]/;
@@ -953,8 +953,8 @@ document.addEventListener('DOMContentLoaded', async function () {
                     text = text.replace(l, newLink);
                 }
             }
-            postData += `<lb></lb>${text.replaceAll(/\n/g, '<lb></lb>')}`;
-            postData += '</skeet><lb></lb><lb></lb>\n';
+            postData += `<lb/>${text.replaceAll(/\n/g, '<lb/>')}`;
+            postData += '</skeet><lb/><lb/>\n';
             xml += postData;
         }
         xml += `</Text>`;
