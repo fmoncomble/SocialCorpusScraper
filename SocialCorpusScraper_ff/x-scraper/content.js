@@ -110,12 +110,64 @@ resetDiv.appendChild(resetMsg);
 resetDiv.appendChild(resumeButton);
 resetDiv.appendChild(resetButton);
 
+let requestUrl;
+let requestHeaders;
+let rateLimitRemaining;
+let rateReset;
+let mode = 'default';
+
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+    if (message.message === 'request_headers') {
+        requestUrl = message.url;
+        requestHeaders = message.headers;
+    }
+    if (message.message === 'response_headers') {
+        let rateLimitRemainingObj = message.headers.find((h) => {
+            return h.name === 'x-rate-limit-remaining';
+        });
+        rateLimitRemaining = rateLimitRemainingObj.value;
+        let rateResetObj = message.headers.find((h) => {
+            return h.name === 'x-rate-limit-reset';
+        });
+        rateReset = rateResetObj.value;
+        if (rateLimitNotice.textContent === '') {
+            if (rateLimitRemaining > 0) {
+                rateLimitNotice.innerHTML = `You have ${rateLimitRemaining} requests left:\nto avoid exceeding your rate limit, scraping more than ${
+                    rateLimitRemaining * 20
+                } tweets will proceed at a rate of 20 tweets every 18 seconds`;
+            } else {
+                let resetTime = new Date(rateReset * 1000);
+                let now = new Date();
+                let timeToReset = resetTime - now;
+                let minutes = Math.floor((timeToReset % 3600000) / 60000);
+                let seconds = Math.floor((timeToReset % 60000) / 1000);
+                rateLimitNotice.innerHTML = `You have exhausted your rate limit:\ntry again in ${minutes} minutes and ${seconds} seconds`;
+                for (
+                    let seconds = Math.floor(timeToReset / 1000);
+                    seconds >= 0;
+                    seconds--
+                ) {
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
+                    if (seconds === 0) {
+                        window.location.reload();
+                    } else {
+                        let minutes = Math.floor((seconds % 3600) / 60);
+                        let secs = Math.floor(seconds % 60);
+                        rateLimitNotice.innerHTML = `You have exhausted your rate limit:\ntry again in ${minutes} minutes and ${secs} seconds`;
+                    }
+                }
+            }
+        }
+    }
+});
+
 async function resetInterface() {
     abort = false;
     results = [];
     cursor = null;
     i = 1;
     tweetCount = 0;
+    mode = 'default';
     scrapeButton.removeAttribute('style');
     stopButton.removeAttribute('style');
     downloadButton.removeAttribute('style');
@@ -133,6 +185,7 @@ async function resetInterface() {
     resetMsg.textContent =
         'You can also resume or click "Reset" to start afresh';
     resumeButton.style.display = 'inline-block';
+    rateLimitNotice.style.display = 'block';
     if (rateLimitRemaining > 0) {
         rateLimitNotice.innerHTML = `You have ${rateLimitRemaining} requests left:\nto avoid exceeding your rate limit, scraping more than ${
             rateLimitRemaining * 20
@@ -215,14 +268,16 @@ resetButton.addEventListener('click', () => {
     resetInterface();
 });
 
-scrapeButton.addEventListener('click', () => {
+scrapeButton.addEventListener('click', async () => {
+    mode = 'default';
     let message = '';
     if (!maxTweets) {
         maxTweets = Infinity;
     }
     if (maxTweets === Infinity || maxTweets > rateLimitRemaining * 20) {
+        mode = 'rateLimit';
         if (maxTweets === Infinity) {
-            message = `Given X's rate limit, scraping will proceed at a rate of 20 tweets every 18 seconds. Do you want to proceed?`;
+            message = `Given X's rate limit, scrolling will proceed at a rate of 20 tweets every 18 seconds. Do you want to proceed?`;
         } else if (maxTweets > rateLimitRemaining * 20) {
             let timeInSeconds = (maxTweets / 20) * 18;
             if (timeInSeconds > 60) {
@@ -231,12 +286,12 @@ scrapeButton.addEventListener('click', () => {
                 if (minutes > 60) {
                     let hours = Math.floor(minutes / 60);
                     minutes = minutes % 60;
-                    message = `Given X's rate limit, scraping ${maxTweets} tweets will take ${hours} hour(s), ${minutes} minute(s) and ${seconds} second(s). Do you want to proceed?`;
+                    message = `Given X's rate limit, scraping ${maxTweets} tweets will take a minimum of ${hours} hour(s), ${minutes} minute(s) and ${seconds} second(s). Do you want to proceed?`;
                 } else {
-                    message = `Given X's rate limit, scraping ${maxTweets} tweets will take ${minutes} minute(s) and ${seconds} second(s). Do you want to proceed?`;
+                    message = `Given X's rate limit, scraping ${maxTweets} tweets will take a minimum of ${minutes} minute(s) and ${seconds} second(s). Do you want to proceed?`;
                 }
             } else {
-                message = `Given X's rate limit, scraping ${maxTweets} tweets will take ${
+                message = `Given X's rate limit, scraping ${maxTweets} tweets will take a minimum of ${
                     (maxTweets / 20) * 18
                 } seconds. Do you want to proceed?`;
             }
@@ -251,7 +306,8 @@ scrapeButton.addEventListener('click', () => {
     stopButton.style.display = 'inline-block';
     scrapeButton.style.display = 'none';
     downloadButton.style.display = 'none';
-    scrape();
+    await scrape();
+    endScrape();
 });
 
 resumeButton.addEventListener('click', async () => {
@@ -263,187 +319,221 @@ resumeButton.addEventListener('click', async () => {
         if (!maxTweets) {
             maxTweets = Infinity;
         }
-        await scrape(cursor);
-        stopButton.style.display = 'none';
-        formatDiv.style.display = 'none';
-        maxTweetsInputLabel.style.display = 'none';
-        maxTweetsInput.style.display = 'none';
-        resetDiv.style.display = 'inline-block';
-        downloadButton.style.display = 'inline-block';
+        await scrape();
+        endScrape();
     } catch (error) {
         console.error('Error: ', error);
     }
 });
 
-let requestUrl;
-let requestHeaders;
-let rateLimitRemaining;
-let rateReset;
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-    if (message.message === 'request_headers') {
-        requestUrl = message.url;
-        requestHeaders = message.headers;
-    }
-    if (message.message === 'response_headers') {
-        let rateLimitRemainingObj = message.headers.find((h) => {
-            return h.name === 'x-rate-limit-remaining';
-        });
-        rateLimitRemaining = rateLimitRemainingObj.value;
-        let rateResetObj = message.headers.find((h) => {
-            return h.name === 'x-rate-limit-reset';
-        });
-        rateReset = rateResetObj.value;
-        if (rateLimitNotice.textContent === '') {
-            if (rateLimitRemaining > 0) {
-                rateLimitNotice.innerHTML = `You have ${rateLimitRemaining} requests left:\nto avoid exceeding your rate limit, scraping more than ${
-                    rateLimitRemaining * 20
-                } tweets will proceed at a rate of 20 tweets every 18 seconds`;
-            } else {
-                let resetTime = new Date(rateReset * 1000);
-                let now = new Date();
-                let timeToReset = resetTime - now;
-                let minutes = Math.floor((timeToReset % 3600000) / 60000);
-                let seconds = Math.floor((timeToReset % 60000) / 1000);
-                rateLimitNotice.innerHTML = `You have exhausted your rate limit:\ntry again in ${minutes} minutes and ${seconds} seconds`;
-                for (
-                    let seconds = Math.floor(timeToReset / 1000);
-                    seconds >= 0;
-                    seconds--
-                ) {
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
-                    if (seconds === 0) {
-                        window.location.reload();
-                    } else {
-                        let minutes = Math.floor((seconds % 3600) / 60);
-                        let secs = Math.floor(seconds % 60);
-                        rateLimitNotice.innerHTML = `You have exhausted your rate limit:\ntry again in ${minutes} minutes and ${secs} seconds`;
+let element = [];
+let totalArticles = 0;
+
+let iteration = 1;
+function observeMutations(iteration) {
+    element = [];
+    return new Promise((resolve) => {
+        const observer = new MutationObserver((mutations) => {
+            let mutationDetected = false;
+
+            for (const mutation of mutations) {
+                if (mutation.type === 'childList') {
+                    const addedNodes = mutation.addedNodes;
+                    if (addedNodes.length) {
+                        mutationDetected = true;
+                        for (let node of addedNodes) {
+                            if (node.querySelector('article')) {
+                                totalArticles++;
+                                element.push(node.querySelector('article'));
+                            }
+                        }
                     }
                 }
             }
-        }
-    }
-});
 
-async function scrape(cursor) {
-    if (abort) {
-        return;
-    }
-    let url = new URL(requestUrl.split('?')[0]);
-    let requestSearchParams = new URLSearchParams(requestUrl.split('?')[1]);
-    let variables = JSON.parse(requestSearchParams.get('variables'));
-    variables.count = 40;
-    if (cursor) {
-        variables.cursor = cursor;
-    }
-    requestSearchParams.set('variables', JSON.stringify(variables));
-    url = url + '?' + requestSearchParams.toString();
-    let headers = new Headers();
-    requestHeaders.forEach((h) => headers.append(h.name, h.value));
-    let res = await fetch(url, { headers: headers });
-    if (!res.ok) {
-        console.error('Error: ', res);
-        return;
-    }
-    let data = await res.json();
-    let instructions =
-        data.data.search_by_raw_query.search_timeline.timeline.instructions;
-    if (!instructions || instructions.length === 0) {
-        endScrape();
-        return;
-    }
-    let entries = instructions[0].entries;
-    if (!entries || entries.length === 0) {
-        endScrape();
-        return;
-    }
-    let tweets = entries.filter((e) => e.entryId.includes('tweet'));
-    results.push(...tweets);
-    if (maxTweets !== Infinity) {
-        processContainer.textContent = `Scraped ${results.length} / ${maxTweets} tweet(s)`;
-    } else if (maxTweets === Infinity) {
-        processContainer.textContent = `Scraped ${results.length} tweet(s)`;
-    }
-    processContainer.textContent = `Scraped ${results.length} tweet(s)`;
-    cursor =
-        entries[entries.length - 1].content.value ||
-        instructions[instructions.length - 1].entry.content.value;
-    let tweetsLeft = maxTweets - results.length;
-    if (
-        !abort &&
-        cursor &&
-        (results.length < maxTweets || maxTweets === Infinity)
-    ) {
-        let rateLimit = res.headers.get('x-rate-limit-remaining');
-        if (tweetsLeft > rateLimit * 20 || maxTweets === Infinity) {
-            for (let i = 18; i > 0; i--) {
-                await new Promise((resolve) => setTimeout(resolve, 1000));
-                processContainer.textContent = `Scraped ${results.length} tweet(s), now waiting ${i}...`;
-                if (abort) {
-                    break;
+            if (mutationDetected) {
+                clearTimeout(inactivityTimeout);
+                inactivityTimeout = setTimeout(() => {
+                    observer.disconnect();
+                    resolve(element);
+                }, 1000);
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+        });
+
+        let inactivityTimeout = setTimeout(() => {
+            observer.disconnect();
+            resolve(element);
+        }, 1000);
+    });
+}
+observeMutations(iteration);
+
+function scrape() {
+    rateLimitNotice.style.display = 'none';
+    abort = false;
+    return new Promise(async (resolve) => {
+        if (abort) return;
+        let scrollDelay = 1000;
+        if (mode === 'rateLimit') {
+            scrollDelay = 18000;
+        }
+        async function scrollToNext() {
+            try {
+                if (
+                    abort ||
+                    results.length >= maxTweets
+                ) {
+                    processContainer.textContent =
+                        results.length + ' tweet(s) scraped';
+                    resolve(results);
+                    return;
                 }
+                for (
+                    let index = 0;
+                    index < element.length && results.length < maxTweets;
+                    index++
+                ) {
+                    try {
+                        if (results.length === maxTweets) {
+                            break;
+                        }
+                        let userNameContainers = Array.from(
+                            element[index].querySelectorAll('a[role="link"]')
+                        );
+                        let userNameContainer = userNameContainers.find((e) =>
+                            e.textContent.startsWith('@')
+                        );
+                        let userName =
+                            userNameContainer.textContent.normalize('NFC');
+                        let date = element[index]
+                            .querySelector('time')
+                            .getAttribute('datetime');
+
+                        let tweetId = `${userName}-${date}`;
+
+                        let dateElements = date.split('T');
+                        date = dateElements[0];
+                        time = dateElements[1].split('.')[0];
+
+                        let rawUserName = userName.split('@')[1];
+                        let tweetUrlContainer = userNameContainers.find((e) =>
+                            e
+                                .getAttribute('href')
+                                .startsWith(`/${rawUserName}/status/`)
+                        );
+                        if (!tweetUrlContainer) {
+                            continue;
+                        }
+                        let tweetRelUrl =
+                            tweetUrlContainer.getAttribute('href');
+                        let tweetUrl = `https://x.com${tweetRelUrl}`;
+
+                        let statusElement = element[index].querySelector(
+                            'div[data-testid="tweetText"]'
+                        );
+
+                        if (!statusElement) {
+                            continue;
+                        }
+                        let status = statusElement.textContent
+                            .replaceAll(/[\u201C\u201D]/g, '"')
+                            .replaceAll(/[\u2018\u2019]/g, "'")
+                            .normalize('NFC');
+
+                        let tweet = {
+                            id: tweetId,
+                            username: userName,
+                            date: date,
+                            time: time,
+                            url: tweetUrl,
+                            text: status,
+                        };
+
+                        if (!results.find((r) => r.id === tweetId)) {
+                            results.push(tweet);
+                        }
+                        if (maxTweets !== Infinity) {
+                            processContainer.textContent = `Scraped ${results.length} tweet(s) of ${maxTweets}`;
+                        } else {
+                            processContainer.textContent = `Scraped ${results.length} tweet(s)`;
+                        }
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+                if (results.length === maxTweets) {
+                    processContainer.textContent =
+                        results.length + ' tweet(s) scraped';
+                    resolve(results);
+                    return;
+                }
+                iteration++;
+                if (!abort && results.length < maxTweets) {
+                    if (mode === 'rateLimit') {
+                        for (let i = 18; i > 0; i--) {
+                            await new Promise((resolve) =>
+                                setTimeout(resolve, 1000)
+                            );
+                            processContainer.textContent = `Scraped ${results.length} tweet(s), now waiting ${i}...`;
+                            if (abort) {
+                                resolve(results);
+                                return;
+                            }
+                        }
+                    }
+                    window.scrollTo(0, document.body.scrollHeight);
+                    await observeMutations(iteration);
+                    scrollToNext();
+                    i++;
+                } else {
+                    processContainer.textContent = results.length + ' tweet(s) scraped';
+                    resolve(results);
+                    return;
+                }
+            } catch (error) {
+                console.error(error);
             }
         }
-        if (!abort) {
-            await scrape(cursor);
-        } else {
-            endScrape();
-        }
-    } else {
-        endScrape();
-    }
-    function endScrape() {
-        results.splice(maxTweets);
-        rateLimitNotice.innerHTML = null;
-        processContainer.textContent = `Scraped ${results.length} tweet(s)`;
-        stopButton.style.display = 'none';
-        formatDiv.style.display = 'none';
-        maxTweetsInputLabel.style.display = 'none';
-        maxTweetsInput.style.display = 'none';
-        resetDiv.style.display = 'inline-block';
-        downloadButton.style.display = 'inline-block';
-        return;
-    }
+            scrollToNext();
+
+        const interval = setInterval(() => {
+            if (abort) {
+                clearInterval(interval);
+            }
+        }, 100);
+    });
 }
 
+function endScrape() {
+    results.splice(maxTweets);
+    rateLimitNotice.innerHTML = null;
+    processContainer.textContent = `Scraped ${results.length} tweet(s)`;
+    stopButton.style.display = 'none';
+    formatDiv.style.display = 'none';
+    maxTweetsInputLabel.style.display = 'none';
+    maxTweetsInput.style.display = 'none';
+    resetDiv.style.display = 'inline-block';
+    downloadButton.style.display = 'inline-block';
+    return;
+}
+
+
 function processResults(results) {
-    let tweets = results.map((r) => {
-        try {
-            let tweet = r.content.itemContent.tweet_results.result;
-            if (!tweet.legacy) {
-                tweet = tweet.tweet;
-            }
-            let tweetData = {
-                id: tweet.legacy.id_str,
-                user_id: tweet.legacy.user_id_str,
-                user_handle: tweet.core.user_results.result.legacy.screen_name,
-                user_name: tweet.core.user_results.result.legacy.name,
-                timestamp: new Date(tweet.legacy.created_at).toISOString(),
-                text: tweet.legacy.full_text,
-                like_count: tweet.legacy.favorite_count,
-                retweet_count: tweet.legacy.retweet_count,
-                quote_count: tweet.legacy.quote_count,
-                reply_count: tweet.legacy.reply_count,
-                url: `https://x.com/${tweet.legacy.user_id_str}/status/${tweet.legacy.id_str}`,
-            };
-            return tweetData;
-        } catch (error) {
-            console.error(
-                `Error with tweet ${results.indexOf(r) + 1}: `,
-                r,
-                error
-            );
-        }
-    });
     if (fileFormat === 'xml') {
-        makeXml(tweets);
+        makeXml(results);
     } else if (fileFormat === 'json') {
-        makeJson(tweets);
+        makeJson(results);
     } else if (fileFormat === 'txt') {
-        makeTxt(tweets);
+        makeTxt(results);
     } else if (fileFormat === 'csv') {
-        makeCsv(tweets);
+        makeCsv(results);
     } else if (fileFormat === 'xlsx') {
-        makeXlsx(tweets);
+        makeXlsx(results);
     }
 }
 
