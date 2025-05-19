@@ -47,9 +47,13 @@ select.masto-scraper {
     height: 32px;
     width: 100px;
     border-radius: 4px;
-    cursor: pointer;
+    /* cursor: pointer; */
     margin: 5px;
     text-align: center;
+}
+
+button {
+    cursor: pointer;
 }
 
 button#abort-btn {
@@ -250,4 +254,55 @@ div#queryurl {
     padding-left: 2.5%;
     width: 95%;
     overflow-wrap: break-word;
+}
+
+dialog {
+    width: 50%;
+    height: 80vh;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 0 10px 0 #aaa;
+}
+
+dialog div.close-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    cursor: pointer;
+}
+
+dialog div#dl-container {
+    height: 90%;
+}
+
+dialog div#keys-container {
+    height: 90%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #eee;
+    margin: 10px 0;
+    overflow-y: scroll;
+    text-align: left;
+}
+
+dialog label {
+    display: inline-block;
+}
+
+.dl-ui {
+    width: auto;
+    height: 30px;
+    padding: 5px;
+    border: solid 1px #2F0C7A;
+    background-color: white;
+    border-radius: 5px;
+    font-size: medium;
+    font-weight: normal;
+    color: #2F0C7A;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.dl-ui:hover {
+    background-color: #e7e8fe;
 }

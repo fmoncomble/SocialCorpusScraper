@@ -50,6 +50,11 @@ input#max-tweets-input:focus-visible {
     outline: solid 0.5px gray;
 }
 
+input[type="checkbox"] {
+    margin: 1em;
+    display: inline-block;
+}
+
 button.x-scraper,
 select.x-scraper {
     border: 1px solid;

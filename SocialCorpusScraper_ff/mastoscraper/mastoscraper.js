@@ -1,5 +1,3 @@
-console.log('Mastocraper script loaded');
-
 document.addEventListener('DOMContentLoaded', async function () {
     // Declare page elements
     const authContainer = document.getElementById('auth-container');
@@ -10,19 +8,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const instanceContainer = document.getElementById('instance-container');
     const instanceInput = document.getElementById('instance-input');
     const instanceSaveBtn = document.getElementById('instance-save');
-    const idContainer = document.getElementById('id-container');
-    const idInput = document.getElementById('id-input');
-    const idSaveBtn = document.getElementById('id-save');
-    const secretContainer = document.getElementById('secret-container');
-    const secretInput = document.getElementById('secret-input');
-    const secretSaveBtn = document.getElementById('secret-save');
-    const getCodeBtn = document.getElementById('get-code-btn');
-    const codeContainer = document.getElementById('code-container');
-    const codeInput = document.getElementById('code-input');
-    const codeSaveBtn = document.getElementById('code-save');
     const allDone = document.getElementById('all-done');
-    const authBtnContainer = document.getElementById('auth-btn-container');
-    const authBtn = document.getElementById('auth-btn');
     const resetAuthBtn = document.getElementById('reset-auth');
     const searchFold = document.getElementById('search-fold');
     const searchUnfold = document.getElementById('search-unfold');
@@ -44,24 +30,115 @@ document.addEventListener('DOMContentLoaded', async function () {
     const searchMsg = document.getElementById('search-msg');
     const noResult = document.getElementById('no-result');
     const extractContainer = document.getElementById('extract-container');
-    const formatSelect = document.getElementById('output-format');
     const maxTootsInput = document.getElementById('max-toots');
     const extractBtn = document.getElementById('extract-btn');
     const extractSpinner = document.getElementById('extract-spinner');
     const abortBtn = document.getElementById('abort-btn');
     const resultsContainer = document.getElementById('results-container');
     const resultsMsg = document.getElementById('results-msg');
-    const dlBtn = document.getElementById('dl-btn');
     const resetBtn = document.getElementById('reset-btn');
     const dlResult = document.getElementById('dl-result');
     const notice = document.getElementById('notice');
     const dismissBtn = document.getElementById('dismiss');
+    const dlDialog = document.getElementById('dl-dialog');
+    const formatSelect = document.getElementById('format-select');
+    const dlConfirmBtn = document.getElementById('dl-confirm-btn');
+
+    // Declare credentials
+    let mastoInstance;
+    let clientId;
+    let clientSecret;
+    chrome.storage.local.get(['mastoinstance'], (result) => {
+        mastoInstance = result.mastoinstance;
+    });
+    chrome.storage.local.get(['mastoclientid'], (result) => {
+        clientId = result.mastoclientid;
+    });
+    chrome.storage.local.get(['mastoclientsecret'], (result) => {
+        clientSecret = result.mastoclientsecret;
+    });
 
     // Manage notice
     let understand;
     let userToken;
-    userToken = await retrieveCredential('mastousertoken');
 
+    //Functions to handle user token
+    getUserToken(function (userTokenResult) {
+        userToken = userTokenResult;
+
+        if (userToken) {
+            instSpan.style.display = 'none';
+            instDiv.style.display = 'none';
+            instanceContainer.style.display = 'none';
+            allDone.style.display = 'block';
+            searchContainer.style.display = 'block';
+            searchFold.style.display = 'block';
+            searchUnfold.style.display = 'none';
+        } else {
+            authContainer.style.display = 'block';
+            authFold.style.display = 'block';
+            authUnfold.style.display = 'none';
+            searchContainer.style.display = 'none';
+            searchFold.style.display = 'none';
+            searchUnfold.style.display = 'block';
+        }
+    });
+
+    function getUserToken(callback) {
+        chrome.storage.local.get(['mastousertoken'], function (result) {
+            const mastousertoken = result.mastousertoken || '';
+            callback(mastousertoken);
+        });
+    }
+
+    async function saveUserToken() {
+        chrome.storage.local.set({ mastousertoken: userToken }, function () {
+            allDone.style.display = 'block';
+            instSpan.style.display = 'none';
+            instDiv.style.display = 'none';
+            instanceContainer.style.display = 'none';
+            setTimeout(() => {
+                authContainer.style.display = 'none';
+                authFold.style.display = 'none';
+                authUnfold.style.display = 'block';
+                searchContainer.style.display = 'block';
+                searchFold.style.display = 'block';
+                searchUnfold.style.display = 'none';
+            }, 1000);
+        });
+    }
+
+    async function removeUserToken() {
+        const formData = new FormData();
+        formData.append('client_id', clientId);
+        formData.append('client_secret', clientSecret);
+        formData.append('token', userToken);
+
+        const url = 'https://' + mastoInstance + '/oauth/revoke';
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData,
+            });
+            if (!response.ok) {
+                window.alert(
+                    'Could not revoke authorization: server responded with error ' +
+                        response.status
+                );
+                throw new Error('Could not revoke token: ', response.status);
+            } else {
+                window.alert('Authorization successfully revoked');
+            }
+        } catch (error) {
+            console.error('Error: ', error);
+        }
+        chrome.storage.local.remove('mastousertoken', function () {
+            userToken = null;
+        });
+    }
+
+    // Functions to handle notice
     getUnderstand(function (understandResult) {
         understand = understandResult;
         if (userToken && understand) {
@@ -135,420 +212,120 @@ document.addEventListener('DOMContentLoaded', async function () {
         searchUnfold.style.display = 'none';
     });
 
-    // Store credentials
-    let mastoCred = 'mastoinstance';
-    let mastoInstance;
-    let idCred = 'masto_client_id';
-    let secretCred = 'masto_client_secret';
-    let codeCred = 'masto_client_code';
-
-    let instancePlaceholder = 'Enter your Mastodon instance (example.instance)';
-    let idPlaceholder = 'Enter your app client ID';
-    let secretPlaceholder = 'Enter your app client secret';
-    let codePlaceholder = 'Enter your code';
-
-    let mastoDevUrl;
-
-    // Store Mastodon instance
+    // Assign function to Mastodon instance input & button
     instanceInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
-            saveCredential(
-                instanceInput,
-                mastoCred,
-                instanceSaveBtn,
-                instancePlaceholder
-            );
             if (instanceInput.value) {
-                mastoDevUrl =
-                    'https://' + instanceInput.value + '/settings/applications';
-                let devTab = chrome.tabs.create({
-                    url: mastoDevUrl,
+                mastoInstance = instanceInput.value.trim();
+                if (mastoInstance.startsWith('http')) {
+                    mastoInstance = mastoInstance.split('/')[2];
+                }
+                chrome.storage.local.set({
+                    mastoinstance: mastoInstance,
                 });
-                devTab;
-                idInput.focus();
+                authenticate();
+            } else {
+                window.alert('Entrez votre instance Mastodon');
+                instanceInput.focus();
             }
         }
     });
     instanceSaveBtn.addEventListener('click', () => {
-        saveCredential(
-            instanceInput,
-            mastoCred,
-            instanceSaveBtn,
-            instancePlaceholder
-        );
         if (instanceInput.value) {
-            mastoDevUrl =
-                'https://' + instanceInput.value + '/settings/applications';
-            let devTab = chrome.tabs.create({
-                url: mastoDevUrl,
+            mastoInstance = instanceInput.value.trim();
+            if (mastoInstance.startsWith('http')) {
+                mastoInstance = mastoInstance.split('/')[2];
+            }
+            chrome.storage.local.set({
+                mastoinstance: mastoInstance,
             });
-            devTab;
-            idInput.focus();
+            authenticate();
+        } else {
+            window.alert('Entrez votre instance Mastodon');
+            instanceInput.focus();
         }
     });
 
-    // Store app ID
-    idInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            saveCredential(idInput, idCred, idSaveBtn, idPlaceholder);
-            secretInput.focus();
+    // Oauth flow function
+    async function authenticate() {
+        let instance = instanceInput.value.trim();
+        let redirectUri;
+        const userAgent = navigator.userAgent;
+        if (userAgent.indexOf('Chrome') > -1) {
+            redirectUri = `https://${chrome.runtime.id}.chromiumapp.org/`;
+        } else if (userAgent.indexOf('Firefox') > -1) {
+            redirectUri = browser.identity.getRedirectURL();
         }
-    });
-    idSaveBtn.addEventListener('click', () => {
-        saveCredential(idInput, idCred, idSaveBtn, idPlaceholder);
-        secretInput.focus();
-    });
-
-    // Store app secret
-    secretInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            saveCredential(
-                secretInput,
-                secretCred,
-                secretSaveBtn,
-                secretPlaceholder
-            );
-            getCodeBtn.style.display = 'block';
+        let createAppUrl = `https://${instance}/api/v1/apps`;
+        let response = await fetch(createAppUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                client_name: 'MastoScraper',
+                redirect_uris: redirectUri,
+                scopes: 'read',
+                website: redirectUri,
+            }),
+        });
+        if (!response.ok) {
+            let errorData = await response.json();
+            console.error('Error creating app: ', response.status, errorData);
+            return;
+        } else if (response && response.ok) {
+            let data = await response.json();
+            clientId = data.client_id;
+            chrome.storage.local.set({ mastoclientid: clientId });
+            clientSecret = data.client_secret;
+            chrome.storage.local.set({ mastoclientsecret: clientSecret });
         }
-    });
-    secretSaveBtn.addEventListener('click', () => {
-        saveCredential(
-            secretInput,
-            secretCred,
-            secretSaveBtn,
-            secretPlaceholder
+        chrome.identity.launchWebAuthFlow(
+            {
+                url: `https://${instanceInput.value}/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=read`,
+                interactive: true,
+            },
+            (redirectUrl) => {
+                if (chrome.runtime.lastError || !redirectUrl) {
+                    console.error(chrome.runtime.lastError);
+                    return;
+                }
+                const urlParams = new URLSearchParams(
+                    new URL(redirectUrl).search
+                );
+                const code = urlParams.get('code');
+                fetch(`https://${instance}/oauth/token`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        client_id: clientId,
+                        client_secret: clientSecret,
+                        grant_type: 'authorization_code',
+                        code: code,
+                        redirect_uri: redirectUri,
+                    }),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        userToken = data.access_token;
+                        saveUserToken();
+                    })
+                    .catch((error) => console.error('Error: ', error));
+            }
         );
-        getCodeBtn.style.display = 'block';
-    });
-
-    // Store and declare authentication code
-    codeInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            saveCredential(codeInput, codeCred, codeSaveBtn, codePlaceholder);
-            authBtnContainer.style.display = 'block';
-        }
-    });
-    codeSaveBtn.addEventListener('click', () => {
-        saveCredential(codeInput, codeCred, codeSaveBtn, codePlaceholder);
-        authBtnContainer.style.display = 'block';
-    });
-
-    let clientID = await retrieveCredential('masto_client_id');
-    let clientSecret = await retrieveCredential('masto_client_secret');
-    let clientCode = await retrieveCredential('masto_client_code');
-    if (clientCode) {
-        authBtnContainer.style.display = 'block';
     }
 
     // Reset authentication button
     resetAuthBtn.addEventListener('click', async () => {
         await removeUserToken();
-        saveCredential(
-            instanceInput,
-            mastoCred,
-            instanceSaveBtn,
-            instancePlaceholder
-        );
-        saveCredential(idInput, idCred, idSaveBtn, idPlaceholder);
-        saveCredential(
-            secretInput,
-            secretCred,
-            secretSaveBtn,
-            secretPlaceholder
-        );
-        saveCredential(codeInput, codeCred, codeSaveBtn, codePlaceholder);
         removeUnderstand();
         instanceContainer.style.display = 'block';
-        idContainer.style.display = 'block';
-        secretContainer.style.display = 'block';
-        getCodeBtn.style.display = 'none';
-        codeContainer.style.display = 'none';
-        authBtnContainer.style.display = 'none';
         allDone.style.display = 'none';
         searchContainer.style.display = 'none';
         location.reload();
     });
-
-    // Functions to check for credentials
-    function getCredential(credType, callback) {
-        chrome.storage.local.get([credType], function (result) {
-            const credential = result[credType] || '';
-            callback(credential);
-        });
-    }
-
-    function handleCredential(credType, inputElement, buttonElement) {
-        getCredential(credType, function (credentialResult) {
-            let credential = credentialResult;
-            if (credential) {
-                inputElement.placeholder =
-                    'Value stored: enter new value to reset';
-                buttonElement.textContent = 'Reset';
-            } else {
-            }
-        });
-    }
-
-    handleCredential(
-        'mastoinstance',
-        instanceInput,
-        instanceSaveBtn,
-        instancePlaceholder
-    );
-    handleCredential('masto_client_id', idInput, idSaveBtn, idPlaceholder);
-    handleCredential(
-        'masto_client_secret',
-        secretInput,
-        secretSaveBtn,
-        secretPlaceholder
-    );
-    handleCredential(
-        'masto_client_code',
-        codeInput,
-        codeSaveBtn,
-        codePlaceholder
-    );
-
-    //Functions to handle user token
-    getUserToken(function (userTokenResult) {
-        userToken = userTokenResult;
-
-        if (userToken) {
-            instSpan.style.display = 'none';
-            instDiv.style.display = 'none';
-            instanceContainer.style.display = 'none';
-            idContainer.style.display = 'none';
-            secretContainer.style.display = 'none';
-            getCodeBtn.style.display = 'none';
-            codeContainer.style.display = 'none';
-            authBtnContainer.style.display = 'none';
-            allDone.style.display = 'block';
-            searchContainer.style.display = 'block';
-            searchFold.style.display = 'block';
-            searchUnfold.style.display = 'none';
-        } else {
-            authContainer.style.display = 'block';
-            authFold.style.display = 'block';
-            authUnfold.style.display = 'none';
-            searchContainer.style.display = 'none';
-            searchFold.style.display = 'none';
-            searchUnfold.style.display = 'block';
-            authBtnContainer.style.display = 'none';
-            getCodeBtn.style.display = 'none';
-        }
-    });
-
-    function getUserToken(callback) {
-        chrome.storage.local.get(['mastousertoken'], function (result) {
-            const mastousertoken = result.mastousertoken || '';
-            callback(mastousertoken);
-        });
-    }
-
-    async function saveUserToken() {
-        chrome.storage.local.set({ mastousertoken: userToken }, function () {
-            allDone.style.display = 'block';
-            setTimeout(() => {
-                authContainer.style.display = 'none';
-                authFold.style.display = 'none';
-                authUnfold.style.display = 'block';
-                searchContainer.style.display = 'block';
-                searchFold.style.display = 'block';
-                searchUnfold.style.display = 'none';
-            }, 1000);
-        });
-    }
-
-    async function removeUserToken() {
-        mastoInstance = await retrieveCredential('mastoinstance');
-        const form = document.createElement('form');
-        const idRevInput = document.createElement('input');
-        idRevInput.setAttribute('name', 'client_id');
-        idRevInput.setAttribute('value', clientID.trim());
-        const secretRevInput = document.createElement('input');
-        secretRevInput.setAttribute('name', 'client_secret');
-        secretRevInput.setAttribute('value', clientSecret.trim());
-        const tokenRevInput = document.createElement('input');
-        tokenRevInput.setAttribute('name', 'token');
-        tokenRevInput.setAttribute('value', userToken);
-        form.appendChild(idRevInput);
-        form.appendChild(secretRevInput);
-        form.appendChild(tokenRevInput);
-
-        const formData = new FormData(form);
-        const url = 'https://' + mastoInstance + '/oauth/revoke';
-
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                body: formData,
-            });
-            if (!response.ok) {
-                window.alert(
-                    'Could not revoke authorization: server responded with error ' +
-                        response.status
-                );
-                throw new Error('Could not revoke token: ', response.status);
-            } else {
-                window.alert('Authorization successfully revoked');
-            }
-        } catch (error) {
-            console.error('Error: ', error);
-        }
-        chrome.storage.local.remove('mastousertoken', function () {
-            userToken = '';
-        });
-    }
-
-    // Function to store credentials
-    async function saveCredential(input, credType, button, placeholder) {
-        let credential = input.value;
-        if (credential) {
-            chrome.storage.local.set({ [credType]: credential }, function () {
-                button.style.backgroundColor = '#4a905f';
-                button.style.color = 'white';
-                button.style.borderColor = '#4a905f';
-                button.textContent = 'Saved';
-                input.placeholder = 'Value stored: enter new value to reset';
-                input.value = '';
-                setTimeout(() => {
-                    button.removeAttribute('style');
-                    button.textContent = 'Reset';
-                }, 2000);
-            });
-        } else {
-            chrome.storage.local.remove([credType], function () {
-                button.style.backgroundColor = '#4a905f';
-                button.style.color = 'white';
-                button.style.borderColor = '#4a905f';
-                button.textContent = 'Value reset';
-                input.value = '';
-                input.placeholder = placeholder;
-                setTimeout(() => {
-                    button.removeAttribute('style');
-                    button.textContent = 'Save';
-                }, 2000);
-            });
-        }
-    }
-
-    // Function to obtain authentication code
-    async function getCode() {
-        // Retrieve credentials from storage
-        mastoInstance = await retrieveCredential('mastoinstance');
-        clientID = await retrieveCredential('masto_client_id');
-
-        if (!mastoInstance) {
-            window.alert('Please enter your Mastodon instance');
-            return;
-        }
-        if (!clientID) {
-            window.alert('Please provide authentication details');
-            return;
-        }
-
-        // Build query form
-        const form = document.getElementById('auth-form-1');
-        form.setAttribute('target', '_blank');
-        const idAuthInput = document.getElementById('id-auth-input');
-        const uriInput = document.getElementById('redirect-input');
-        const restypeInput = document.getElementById('restype-input');
-        form.setAttribute(
-            'action',
-            'https://' + mastoInstance + '/oauth/authorize'
-        );
-        restypeInput.setAttribute('value', 'code');
-        idAuthInput.setAttribute('value', clientID.trim());
-        uriInput.setAttribute('value', 'urn:ietf:wg:oauth:2.0:oob');
-
-        form.submit();
-    }
-
-    getCodeBtn.addEventListener('click', () => {
-        getCode();
-        codeContainer.style.display = 'block';
-        codeInput.focus();
-    });
-
-    // Function to obtain user token
-    async function authorize() {
-        // Retrieve credentials from storage
-        mastoInstance = await retrieveCredential('mastoinstance');
-        clientID = await retrieveCredential('masto_client_id');
-        clientSecret = await retrieveCredential('masto_client_secret');
-        let clientCode = await retrieveCredential('masto_client_code');
-
-        if (!mastoInstance) {
-            window.alert('Please enter your Mastodon instance');
-            return;
-        }
-        if (!clientID || !clientSecret || !clientCode) {
-            window.alert('Please provide authentication details');
-            return;
-        }
-
-        // Build query form
-        const form = document.getElementById('auth-form-2');
-        const idAuthInput = document.getElementById('id-auth-input-2');
-        const secretAuthInput = document.getElementById('secret-auth-input-2');
-        const codeAuthInput = document.getElementById('code-auth-input');
-        const uriInput = document.getElementById('redirect-input-2');
-        const grantTypeInput = document.getElementById('granttype-input');
-        grantTypeInput.setAttribute('value', 'authorization_code');
-        codeAuthInput.setAttribute('value', clientCode.trim());
-        idAuthInput.setAttribute('value', clientID.trim());
-        secretAuthInput.setAttribute('value', clientSecret.trim());
-        uriInput.setAttribute('value', 'urn:ietf:wg:oauth:2.0:oob');
-
-        const formData = new FormData(form);
-        const url = 'https://' + mastoInstance + '/oauth/token';
-
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                body: formData,
-            });
-
-            if (!response.ok) {
-                window.alert('There was an error during authorization');
-                throw new Error('Network response was not ok');
-            }
-
-            const jsonData = await response.json();
-            accessToken = jsonData.access_token;
-            if (accessToken) {
-                userToken = accessToken;
-                await saveUserToken();
-                instSpan.style.display = 'none';
-                instDiv.style.display = 'none';
-                instanceContainer.style.display = 'none';
-                idContainer.style.display = 'none';
-                secretContainer.style.display = 'none';
-                getCodeBtn.style.display = 'none';
-                codeContainer.style.display = 'none';
-                authBtnContainer.style.display = 'none';
-            } else {
-                window.alert('Could not retrieve access token');
-                throw new Error('Could not retrieve access token');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
-
-    authBtn.addEventListener('click', async () => {
-        authorize();
-    });
-
-    // Function to retrieve credential from storage
-    function retrieveCredential(credType) {
-        return new Promise((resolve, reject) => {
-            chrome.storage.local.get([credType], function (result) {
-                const credential = result[credType] || '';
-                resolve(credential);
-            });
-        });
-    }
 
     // Logic to build query URL from inputs
     let queryUrl;
@@ -587,7 +364,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
 
     async function buildQueryUrl() {
-        mastoInstance = await retrieveCredential('mastoinstance');
         if (!mastoInstance) {
             window.alert('Please enter your Mastodon instance');
             searchMsg.style.display = 'none';
@@ -691,7 +467,6 @@ document.addEventListener('DOMContentLoaded', async function () {
                 searchMsg.style.display = 'none';
                 return;
             }
-            userToken = await retrieveCredential('mastousertoken');
             const response = await fetch(queryUrl, {
                 headers: {
                     Authorization: `Bearer ${userToken}`,
@@ -749,11 +524,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
     });
 
-    let fileFormat = 'xml';
-    formatSelect.addEventListener('change', () => {
-        fileFormat = formatSelect.value;
-    });
-
     let searchInstances;
     searchInstanceInput.addEventListener('change', () => {
         searchInstanceInput.value = searchInstanceInput.value.replaceAll(
@@ -763,13 +533,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         searchInstances = searchInstanceInput.value.split(',');
     });
 
-    let file;
-    let statuses;
+    let statuses = [];
+    let posts = [];
     let id;
-    let csvData = [];
     let skippedItems = 0;
-    let sheet;
-    let tootCount = 1;
     let nextQueryUrl;
 
     // Assign function to extract button
@@ -784,7 +551,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         extractBtn.style.display = 'none';
         resultsContainer.style.display = 'block';
         resultsMsg.textContent = '';
-        dlBtn.style.display = 'none';
         dlResult.textContent = '';
         resetBtn.style.display = 'none';
         try {
@@ -795,16 +561,8 @@ document.addEventListener('DOMContentLoaded', async function () {
             maxTootsInput.disabled = false;
             extractBtn.disabled = false;
             extractSpinner.style.display = 'none';
-            tootCount = tootCount - 1;
-            resultsMsg.textContent = tootCount + ' toot(s) extracted';
-            if (skippedItems > 0) {
-                const skippedItemsText = document.createTextNode(
-                    ` — ${skippedItems} toot(s) ignored: too long for XLSX`
-                );
-                resultsMsg.appendChild(skippedItemsText);
-            }
-            dlBtn.textContent = 'Download ' + fileFormat.toUpperCase();
-            dlBtn.style.display = 'inline-block';
+            resultsMsg.textContent = statuses.length + ' toot(s) extracted';
+            showOptions(statuses);
             resetBtn.style.display = 'inline-block';
         } catch (error) {
             console.error('Error: ', error);
@@ -825,42 +583,20 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (!maxToots) {
             maxToots = Infinity;
         }
-        if (fileFormat === 'xml') {
-            file = `<Text>`;
-        } else if (fileFormat === 'json') {
-            file = {};
-        } else if (fileFormat === 'txt') {
-            file = '';
-        } else if (fileFormat === 'csv') {
-            csvData = [];
-        } else if (fileFormat === 'xlsx') {
-            file = XLSX.utils.book_new();
-            sheet = XLSX.utils.aoa_to_sheet([
-                ['ID', 'Username', 'Date', 'Time', 'URL', 'Text'],
-            ]);
-        }
 
         let p = 1;
 
         tootCount = 1;
         skippedItems = 0;
 
-        while (tootCount <= maxToots) {
+        while (statuses.length < maxToots) {
             await processPage();
 
-            if (tootCount > maxToots || abort) {
-                if (fileFormat === 'xml') {
-                    file =
-                        file +
-                        `
-
-</Text>`;
-                }
+            if (statuses.length >= maxToots || abort) {
                 abortBtn.textContent = 'Abort';
                 abortBtn.style.display = 'none';
                 extractBtn.style.display = 'block';
                 extractBtn.disabled = true;
-                dlBtn.style.display = 'block';
                 abort = false;
                 break;
             }
@@ -899,44 +635,39 @@ document.addEventListener('DOMContentLoaded', async function () {
                     );
                 }
                 const data = await response.json();
-                statuses = data.statuses;
                 if (
-                    statuses.length == 0 ||
-                    (tootCount > 1 && statuses.length <= 1)
+                    !data.statuses.length ||
+                    (tootCount > 1 && data.statuses.length <= 1)
                 ) {
                     abort = true;
                 }
-                for (s of statuses) {
-                    const parser = new DOMParser();
-                    id = s.id;
-                    if (tootSet.has(id)) {
-                        continue;
-                    }
-                    let sLang = s.language;
-                    if (lang && sLang !== lang) {
-                        continue;
-                    }
-                    tootSet.add(id);
-
-                    username = s.account.acct;
-
-                    datetime = s.created_at;
-                    if (fromDate && datetime < fromDate) {
+                for (let s of data.statuses) {
+                    if (statuses.length >= maxToots) {
                         abort = true;
                         break;
                     }
-                    if (toDate && datetime > toDate) {
+                    const parser = new DOMParser();
+                    if (tootSet.has(s.id)) {
+                        continue;
+                    }
+                    if (lang && s.language !== lang) {
+                        continue;
+                    }
+                    if (fromDate && s.created_at < fromDate) {
+                        abort = true;
+                        break;
+                    }
+                    if (toDate && s.created_at > toDate) {
                         continue;
                     }
 
-                    let sInstance = username.split('@')[1];
+                    let sInstance = s.account.acct.split('@')[1];
                     if (searchInstances && searchInstances.length > 0) {
                         if (!searchInstances.includes(sInstance)) {
                             continue;
                         }
                     }
-                    date = datetime.split('T')[0];
-                    time = datetime.split('T')[1].split('.')[0];
+                    tootSet.add(s.id);
                     let rawText = s.content;
                     let rawTextHtml = parser.parseFromString(
                         rawText,
@@ -947,81 +678,15 @@ document.addEventListener('DOMContentLoaded', async function () {
                         .replaceAll('<br>', '\n')
                         .replaceAll('<p>', '\n')
                         .replaceAll(/<.+?>/gu, '');
-                    text = rawTextString.normalize('NFC');
-                    if (fileFormat === 'xlsx' && text.length > 32767) {
-                        skippedItems++;
-                        continue;
-                    }
-                    url = s.url;
-
-                    if (fileFormat === 'xml') {
-                        username = username
-                            .replaceAll('&', '&amp;')
-                            .replaceAll('<', '&lt;')
-                            .replaceAll('>', '&gt;')
-                            .replaceAll('"', '&quot;')
-                            .replaceAll("'", '&apos;');
-                        text = text
-                            .replaceAll('&', '&amp;')
-                            .replaceAll('<', '&lt;')
-                            .replaceAll('>', '&gt;')
-                            .replaceAll('"', '&quot;')
-                            .replaceAll("'", '&apos;')
-                            .replaceAll('&nbsp;', ' ');
-                        const urlRegex =
-                            /(?:https?|ftp):\/\/[-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[-A-Za-z0-9+&@#\/%=~_|]/;
-                        const links = text.match(urlRegex);
-                        if (links) {
-                            for (l of links) {
-                                const newLink = l.replace(
-                                    /(.+)/,
-                                    `<ref target="$1">$1</ref>`
-                                );
-                                text = text.replace(l, newLink);
-                            }
-                        }
-                        text = text.replaceAll('\n', ' ');
-                        file =
-                            file +
-                            `<lb/><lb/>
-<toot id="${id}" username="${username}" date="${date}" time="${time}"><lb/>
-<ref target="${url}">${url}</ref><lb/><lb/>
-${text}
-</toot>
-<lb/><lb/>`;
-                    } else if (fileFormat === 'txt') {
-                        file = file + `\n\n${text}\n\n——————`;
-                    } else if (fileFormat === 'json') {
-                        text = text.replaceAll('\n', ' ');
-                        file[id] = {
-                            username: `${username}`,
-                            date: `${date}`,
-                            time: `${time}`,
-                            url: `${url}`,
-                            text: `${text}`,
-                        };
-                    } else if (fileFormat === 'csv') {
-                        text = text.replaceAll('\n', ' ');
-                        csvData.push({ username, date, time, url, text });
-                    } else if (fileFormat === 'xlsx') {
-                        text = text.replaceAll('\n', ' ');
-                        let row = [id, username, date, time, url, text];
-                        XLSX.utils.sheet_add_aoa(sheet, [row], { origin: -1 });
-                    }
+                    s.content = rawTextString.normalize('NFC');
+                    statuses.push(s);
+                    id = s.id;
                     if (maxToots !== Infinity) {
-                        let tootPercent = Math.round(
-                            (tootCount / maxToots) * 100
-                        );
-                        resultsMsg.textContent = `${tootPercent}% extracted...`;
+                        resultsMsg.textContent = `${statuses.length} out of ${maxToots} extracted...`;
                     } else {
-                        resultsMsg.textContent = `${tootCount} toot(s) extracted...`;
+                        resultsMsg.textContent = `${statuses.length} toot(s) extracted...`;
                     }
-                    if (lang && sLang === lang) {
-                        tootCount++;
-                    } else if (!lang) {
-                        tootCount++;
-                    }
-                    if (tootCount > maxToots) {
+                    if (statuses.length > maxToots) {
                         return;
                     }
                 }
@@ -1032,57 +697,412 @@ ${text}
         }
     }
 
-    // Assign role to download button
-    dlBtn.addEventListener('click', () => {
-        download();
-        dlResult.style.display = 'block';
-        dlResult.textContent = fileFormat.toUpperCase() + ' file downloaded';
+    // Show data options dialog
+    function showOptions(statuses) {
+        const commonKeys = getCommonKeys(statuses);
+        const keyTree = buildKeyTree(statuses[0], commonKeys);
+        const container = dlDialog.querySelector('#keys-container');
+        container.textContent = '';
+        generateListTree(keyTree, container);
+        const checkboxes = dlDialog.querySelectorAll(
+            'input[type="checkbox"].data-item'
+        );
+        checkboxes.forEach((checkbox) => {
+            updateParentCheckboxes(checkbox);
+        });
+        const postCountSpan = dlDialog.querySelector('#post-count');
+        postCountSpan.textContent = `${statuses.length} post(s) extracted — `;
+        const closeBtn = dlDialog.querySelector('.close-btn');
+        closeBtn.addEventListener('click', () => {
+            dlDialog.close();
+        });
+        dlDialog.showModal();
+
+        function getCommonKeys(statuses) {
+            if (statuses.length === 0) return [];
+
+            const commonKeys = new Set(Object.keys(statuses[0]));
+
+            for (let status of statuses) {
+                if (!status) {
+                    continue;
+                }
+                for (let key of commonKeys) {
+                    if (!(key in status)) {
+                        commonKeys.delete(key);
+                    }
+                }
+            }
+
+            return Array.from(commonKeys);
+        }
+
+        function buildKeyTree(obj, commonKeys, prefix = '') {
+            let tree = {};
+            for (let key of commonKeys) {
+                const fullKey = prefix ? `${prefix}.${key}` : key;
+                if (typeof obj[key] === 'object' && obj[key] !== null) {
+                    tree[fullKey] = buildKeyTree(
+                        obj[key],
+                        Object.keys(obj[key]),
+                        fullKey
+                    );
+                } else {
+                    tree[fullKey] = null;
+                }
+            }
+            return tree;
+        }
+
+        function generateListTree(tree, container) {
+            const ul = document.createElement('ul');
+            ul.style.listStyleType = 'none';
+
+            for (let key in tree) {
+                if (tree.hasOwnProperty(key)) {
+                    const li = document.createElement('li');
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.classList.add('data-item');
+                    checkbox.id = key;
+                    checkbox.name = key;
+
+                    if (
+                        key === 'content' ||
+                        key === 'account.acct' ||
+                        key === 'created_at' ||
+                        key === 'url'
+                    ) {
+                        checkbox.checked = true;
+                    }
+
+                    const label = document.createElement('label');
+                    label.htmlFor = key;
+                    label.appendChild(
+                        document.createTextNode(
+                            key.split('.')[key.split('.').length - 1]
+                        )
+                    );
+
+                    li.appendChild(checkbox);
+                    li.appendChild(label);
+                    ul.appendChild(li);
+
+                    if (tree[key] !== null) {
+                        const nestedContainer = document.createElement('div');
+                        nestedContainer.style.marginLeft = '20px';
+                        generateListTree(tree[key], nestedContainer);
+                        li.appendChild(nestedContainer);
+
+                        checkbox.addEventListener('change', function () {
+                            const childCheckboxes =
+                                nestedContainer.querySelectorAll(
+                                    'input[type="checkbox"]'
+                                );
+                            childCheckboxes.forEach((childCheckbox) => {
+                                childCheckbox.checked = checkbox.checked;
+                                childCheckbox.indeterminate = false;
+                            });
+                        });
+                    }
+
+                    checkbox.addEventListener('change', function () {
+                        updateParentCheckboxes(checkbox);
+                    });
+                }
+            }
+            container.appendChild(ul);
+        }
+
+        function updateParentCheckboxes(checkbox) {
+            const parentLi = checkbox.closest('li').parentElement.closest('li');
+            if (parentLi) {
+                const parentCheckbox = parentLi.querySelector(
+                    'input[type="checkbox"]'
+                );
+                const childCheckboxes = parentLi.querySelectorAll(
+                    'div > ul > li > input[type="checkbox"]'
+                );
+                const allChecked = Array.from(childCheckboxes).every(
+                    (child) => child.checked
+                );
+                const someChecked = Array.from(childCheckboxes).some(
+                    (child) => child.checked
+                );
+
+                parentCheckbox.checked = allChecked;
+                parentCheckbox.indeterminate = !allChecked && someChecked;
+
+                updateParentCheckboxes(parentCheckbox);
+            }
+        }
+    }
+
+    let fileFormat = 'xml';
+    formatSelect.addEventListener('change', () => {
+        fileFormat = formatSelect.value;
+        if (fileFormat === 'xlsx') {
+            const tableFormat = document.createElement('label');
+            tableFormat.htmlFor = 'table-checkbox';
+            tableFormat.textContent = 'Format as table';
+            tableFormat.style.display = 'block';
+            const tableCheckbox = document.createElement('input');
+            tableCheckbox.type = 'checkbox';
+            tableCheckbox.id = 'table-checkbox';
+            tableCheckbox.style.verticalAlign = 'middle';
+            tableCheckbox.checked = true;
+            tableFormat.appendChild(tableCheckbox);
+            dlConfirmBtn.after(tableFormat);
+        } else {
+            const tableFormat = document.querySelector(
+                'label[for="table-checkbox"]'
+            );
+            if (tableFormat) {
+                tableFormat.remove();
+            }
+        }
     });
 
-    // Function to download output file
-    function download() {
-        try {
-            if (fileFormat === 'xml') {
-                var myBlob = new Blob([file], { type: 'application/xml' });
-            } else if (fileFormat === 'json') {
-                var fileString = JSON.stringify(file);
-                var myBlob = new Blob([fileString], { type: 'text/plain' });
-            } else if (fileFormat === 'txt') {
-                var myBlob = new Blob([file], { type: 'text/plain' });
-            } else if (fileFormat === 'csv') {
-                function convertToCsv(data) {
-                    const header = Object.keys(data[0]).join('\t');
-                    const rows = data.map((obj) =>
-                        Object.values(obj).join('\t')
-                    );
-                    return [header, ...rows].join('\n');
-                }
-                const csvString = convertToCsv(csvData);
-                var myBlob = new Blob([csvString], { type: 'text/csv' });
-            } else if (fileFormat === 'xlsx') {
-                XLSX.utils.book_append_sheet(file, sheet, 'Toots');
-                XLSX.writeFile(file, 'toots.xlsx');
-            }
-            if (fileFormat !== 'xlsx') {
-                var url = window.URL.createObjectURL(myBlob);
-                var anchor = document.createElement('a');
-                anchor.href = url;
-                anchor.download = `toots.${fileFormat}`;
-                anchor.click();
-                window.URL.revokeObjectURL(url);
-            }
-        } catch (error) {
-            console.error(error);
-            window.alert(
-                `${fileFormat.toUpperCase()} file creation failed. Try another output format.`
-            );
-            formatSelect.disabled = false;
-            maxResultsInput.disabled = false;
-            extractBtn.disabled = false;
-            dlBtn.style.display = 'none';
-            resetBtn.style.display = 'none';
-            dlResult.textContent = '';
+    // Listen to download button
+    dlConfirmBtn.addEventListener('click', () => {
+        buildData();
+        if (fileFormat === 'json') {
+            downloadJson();
+        } else if (fileFormat === 'csv') {
+            downloadCsv();
+        } else if (fileFormat === 'xml') {
+            downloadXml();
+        } else if (fileFormat === 'txt') {
+            downloadTxt();
+        } else if (fileFormat === 'xlsx') {
+            downloadXlsx();
         }
+    });
+
+    function getNestedValue(obj, keyPath) {
+        return keyPath.split('.').reduce((acc, key) => acc && acc[key], obj);
+    }
+
+    function buildData() {
+        posts = [];
+        const checkboxes = dlDialog.querySelectorAll(
+            'input[type="checkbox"].data-item'
+        );
+        for (let s of statuses) {
+            let post = {};
+            for (let checkbox of checkboxes) {
+                if (checkbox.checked) {
+                    const key = checkbox.id;
+                    const value = getNestedValue(s, key);
+                    post[key.replaceAll('.', '-')] = value;
+                }
+            }
+            posts.push(post);
+        }
+    }
+
+    // Download functions
+    function downloadCsv() {
+        const spinner = document.createElement('span');
+        spinner.classList.add('spinner');
+        dlConfirmBtn.textContent = '';
+        dlConfirmBtn.appendChild(spinner);
+        spinner.style.display = 'inline-block';
+        const header = Object.keys(posts[0]).join('\t');
+        const rows = posts.map((post) => Object.values(post).join('\t'));
+        const csv = [header, ...rows].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = 'mastodon_scrape.csv';
+        spinner.remove();
+        dlConfirmBtn.textContent = 'Download';
+        anchor.click();
+    }
+
+    function downloadJson() {
+        const spinner = document.createElement('span');
+        spinner.classList.add('spinner');
+        dlConfirmBtn.textContent = '';
+        dlConfirmBtn.appendChild(spinner);
+        spinner.style.display = 'inline-block';
+        const json = JSON.stringify(posts, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = 'mastodon_scrape.json';
+        spinner.remove();
+        dlConfirmBtn.textContent = 'Download';
+        anchor.click();
+    }
+
+    function downloadXml() {
+        const spinner = document.createElement('span');
+        spinner.classList.add('spinner');
+        dlConfirmBtn.textContent = '';
+        dlConfirmBtn.appendChild(spinner);
+        spinner.style.display = 'inline-block';
+        let xml = '<Text>';
+        for (let p of posts) {
+            let postData = '<lb/>\n<skeet';
+            for (let [key, value] of Object.entries(p)) {
+                if (typeof value === 'string') {
+                    p[key] = value
+                        .replaceAll(/&/g, '&amp;')
+                        .replaceAll(/</g, '&lt;')
+                        .replaceAll(/>/g, '&gt;')
+                        .replaceAll(/"/g, '&quot;')
+                        .replaceAll(/'/g, '&apos;')
+                        .replaceAll(/\u00A0/g, ' ');
+                }
+                if (key !== 'content' && key !== 'url') {
+                    postData += ` ${key}="${p[key]}"`;
+                }
+            }
+            postData += '>';
+            postData += `<lb/><ref target="${p.url}">Link to post</ref><lb/>`;
+            let text = p['content'];
+            const urlRegex =
+                /(?:https?|ftp):\/\/[-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[-A-Za-z0-9+&@#\/%=~_|]/;
+            const links = text.match(urlRegex);
+            if (links) {
+                for (l of links) {
+                    const newLink = l.replace(
+                        /(.+)/,
+                        `<ref target="$1">$1</ref>`
+                    );
+                    text = text.replace(l, newLink);
+                }
+            }
+            postData += `<lb/>${text.replaceAll(/\n/g, '<lb/>')}`;
+            postData += '</skeet><lb/><lb/>\n';
+            xml += postData;
+        }
+        xml += `</Text>`;
+        const blob = new Blob([xml], { type: 'application/xml' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = 'mastodon_scrape.xml';
+        spinner.remove();
+        dlConfirmBtn.textContent = 'Download';
+        anchor.click();
+    }
+
+    function downloadTxt() {
+        const spinner = document.createElement('span');
+        spinner.classList.add('spinner');
+        dlConfirmBtn.textContent = '';
+        dlConfirmBtn.appendChild(spinner);
+        spinner.style.display = 'inline-block';
+        let txt = '';
+        for (let p of posts) {
+            let postData = p['content'];
+            postData += '\n\n';
+            txt += postData;
+        }
+        const blob = new Blob([txt], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = 'mastodon_scrape.txt';
+        spinner.remove();
+        dlConfirmBtn.textContent = 'Download';
+        anchor.click();
+    }
+
+    async function downloadXlsx() {
+        let widths = [];
+        Object.keys(posts[0]).forEach((key) => {
+            widths.push({ key: key, widths: [] });
+        });
+        for (let p of posts) {
+            for (let [key, value] of Object.entries(p)) {
+                if (value) {
+                    let vString = value.toString();
+                    widths
+                        .find((w) => w.key === key)
+                        .widths.push(key.length, vString.length);
+                }
+            }
+        }
+        widths = widths.map((w) => {
+            w.widths.sort((a, b) => b - a);
+            return w.widths[0];
+        });
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('mastodon_scrape');
+        worksheet.columns = Object.keys(posts[0]).map((key) => {
+            return { header: key, key: key, width: widths.shift() };
+        });
+
+        const rows = [];
+        function isDate(value) {
+            const regexp = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d{3}Z)?/;
+            return regexp.test(value);
+        }
+        for (let p of posts) {
+            if (p.content.length > 32767) {
+                continue;
+            }
+            let row = [];
+            for (let [key, value] of Object.entries(p)) {
+                if (isDate(value)) {
+                    value = new Date(value);
+                } else if (key === 'url') {
+                    value = {
+                        text: value,
+                        hyperlink: value,
+                        tooltip: 'Link to post',
+                    };
+                }
+                row.push(value);
+            }
+            rows.push(row);
+        }
+
+        const tableCheckbox = document.getElementById('table-checkbox');
+        if (tableCheckbox.checked) {
+            worksheet.addTable({
+                name: 'mastodon_scrape',
+                ref: 'A1',
+                headerRow: true,
+                totalsRow: false,
+                style: {
+                    theme: 'TableStyleMedium9',
+                    showRowStripes: true,
+                },
+                columns: worksheet.columns.map((col) => ({
+                    name: col.header,
+                    filterButton: true,
+                })),
+                rows: rows,
+            });
+        } else {
+            worksheet.addRows(rows);
+        }
+        const urlCol = worksheet.getColumn('url');
+        if (urlCol) {
+            urlCol.eachCell(function (cell) {
+                if (cell.value && cell.value.hyperlink) {
+                    cell.style = {
+                        font: { color: { argb: 'ff0000ff' }, underline: true },
+                    };
+                }
+            });
+        }
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = 'mastodon_scrape.xlsx';
+        anchor.click();
     }
 
     // Assign role to reset button

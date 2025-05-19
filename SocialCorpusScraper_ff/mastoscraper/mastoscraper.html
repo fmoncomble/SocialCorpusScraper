@@ -2,21 +2,22 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <link href="favicon.ico" rel="icon" type="image/x-icon" />
+        <link href="icons/favicon.ico" rel="icon" type="image/x-icon" />
         <title>MastoScraper</title>
         <link rel="stylesheet" type="text/css" href="mastoscraper.css" />
         <script src="mastoscraper.js"></script>
-        <script src="../xlsx.full.min.js"></script>
+        <script src="../utils/polyfill.js"></script>
+        <script src="../utils/exceljs.min.js"></script>
     </head>
 
     <body>
         <div class="mastodon-logo">
             <img
-                src="mastoscraper-logo.svg"
+                src="icons/mastoscraper-logo.svg"
                 width="300"
                 fill="currentColor"
             />
-            <div id="version-div">v0.7</div>
+            <div id="version-div">v0.9</div>
         </div>
         <br />
         <!-- Authentication container -->
@@ -30,20 +31,15 @@
             <div id="instructions">Show instructions</div>
             <div id="instructions-container" style="display: none">
                 <p>
-                    On first use, you will have to create an application in your
-                    Mastodon's account developer settings.
+                    On first use, you will need to authenticate this app with
+                    your Mastodon account.
                 </p>
                 <p>
-                    Name it MastoScraper, do not change any settings and click
-                    the "Submit" button at the bottom of the page. You will need
-                    the application ID and secret.
-                </p>
-                <p>
-                    Follow the steps below to complete authorization.
-                    <i>(Your credentials are only stored locally.)</i>
+                    Enter the name of your Mastodon instance below and click
+                    'Authorize' to get started
                 </p>
                 <p></p>
-                <p><strong>⚠️ Allow pop-ups when prompted.</strong></p>
+                <p><strong>⚠️ Allow pop-ups if prompted.</strong></p>
             </div>
             <div id="instance-container">
                 <div>Enter your Mastodon instance:</div>
@@ -53,47 +49,7 @@
                     type="text"
                     placeholder="Enter your Mastodon instance (example.instance)"
                 />
-                <button id="instance-save" class="masto-scraper">Save</button>
-            </div>
-            <div id="id-container">
-                <div>Enter your app ID / client key:</div>
-                <input
-                    id="id-input"
-                    class="masto-scraper"
-                    type="password"
-                    placeholder="Enter your app ID / client key"
-                />
-                <button id="id-save" class="masto-scraper">Save</button>
-            </div>
-            <div id="secret-container">
-                <div>Enter your client secret:</div>
-                <input
-                    id="secret-input"
-                    class="masto-scraper"
-                    type="password"
-                    placeholder="Enter your app secret"
-                />
-                <button id="secret-save" class="masto-scraper">Save</button>
-            </div>
-            <button
-                id="get-code-btn"
-                class="masto-scraper"
-                style="display: none"
-            >
-                Get code
-            </button>
-            <div id="code-container" style="display: none">
-                <div>Enter your code:</div>
-                <input
-                    id="code-input"
-                    class="masto-scraper"
-                    type="password"
-                    placeholder="Enter your code"
-                />
-                <button id="code-save" class="masto-scraper">Save</button>
-            </div>
-            <div id="auth-btn-container" style="display: none">
-                <button name="auth-btn" id="auth-btn" class="masto-scraper">
+                <button id="instance-save" class="masto-scraper">
                     Authorize
                 </button>
             </div>
@@ -101,59 +57,6 @@
                 <div>Authorization complete</div>
                 <button id="reset-auth" class="masto-scraper">Reset</button>
             </div>
-            <!-- Invisible authentication query forms -->
-            <form id="auth-form-1" method="GET" action="">
-                <input
-                    id="id-auth-input"
-                    name="client_id"
-                    type="password"
-                    style="display: none"
-                />
-                <input
-                    id="redirect-input"
-                    name="redirect_uri"
-                    type="text"
-                    style="display: none"
-                />
-                <input
-                    id="restype-input"
-                    name="response_type"
-                    type="text"
-                    style="display: none"
-                />
-            </form>
-            <form id="auth-form-2" method="POST" action="">
-                <input
-                    id="id-auth-input-2"
-                    name="client_id"
-                    type="password"
-                    style="display: none"
-                />
-                <input
-                    id="secret-auth-input-2"
-                    name="client_secret"
-                    type="password"
-                    style="display: none"
-                />
-                <input
-                    id="code-auth-input"
-                    name="code"
-                    type="password"
-                    style="display: none"
-                />
-                <input
-                    id="redirect-input-2"
-                    name="redirect_uri"
-                    type="text"
-                    style="display: none"
-                />
-                <input
-                    id="granttype-input"
-                    name="grant_type"
-                    type="text"
-                    style="display: none"
-                />
-            </form>
         </div>
         <!-- Search container -->
         <div id="search-fold" class="fold" style="display: block">
@@ -296,23 +199,6 @@
         <!-- Extraction container -->
         <div id="extract-container" style="display: none">
             <div>
-                <label for="output-format" style="display: inline-block"
-                    >Choose output format:
-                </label>
-                <select
-                    id="output-format"
-                    class="masto-scraper"
-                    name="output-format"
-                    style="display: inline-block"
-                >
-                    <option value="xml">XML/XTZ</option>
-                    <option value="txt">TXT</option>
-                    <option value="csv">CSV</option>
-                    <option value="xlsx">XLSX</option>
-                    <option value="json">JSON</option>
-                </select>
-            </div>
-            <div>
                 <label for="max-toots" style="display: inline-block"
                     >Max toots:
                 </label>
@@ -349,9 +235,6 @@
             </div>
             <!-- Download container -->
             <div>
-                <button id="dl-btn" class="masto-scraper" style="display: none">
-                    Download XML
-                </button>
                 <button
                     id="reset-btn"
                     class="masto-scraper"
@@ -382,5 +265,24 @@
             </p>
             <p id="dismiss">I understand</p>
         </div>
+        <!-- Download dialog -->
+        <dialog id="dl-dialog">
+            <div class="close-btn">❌</div>
+            <div id="dl-container">
+                <span id="post-count"></span>
+                Select data to include:
+                <div id="keys-container"></div>
+            </div>
+            <div id="options-container">
+                <select id="format-select" class="dl-ui">
+                    <option value="xml">XML/XTZ</option>
+                    <option value="txt">TXT</option>
+                    <option value="csv">CSV</option>
+                    <option value="xlsx">XLSX</option>
+                    <option value="json">JSON</option>
+                </select>
+                <button id="dl-confirm-btn" class="dl-ui">Download</button>
+            </div>
+        </dialog>
     </body>
 </html>
