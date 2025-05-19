@@ -946,7 +946,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         spinner.style.display = 'inline-block';
         let xml = '<Text>';
         for (let p of posts) {
-            let postData = '<lb/>\n<skeet';
+            let postData = '<lb/>\n<toot';
             for (let [key, value] of Object.entries(p)) {
                 if (typeof value === 'string') {
                     p[key] = value
@@ -977,7 +977,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 }
             }
             postData += `<lb/>${text.replaceAll(/\n/g, '<lb/>')}`;
-            postData += '</skeet><lb/><lb/>\n';
+            postData += '</toot><lb/><lb/>\n';
             xml += postData;
         }
         xml += `</Text>`;
