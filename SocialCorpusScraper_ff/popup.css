@@ -10,8 +10,17 @@ body {
     font-family: 'Roboto', system-ui, sans-serif;
     font-size: small;
     width: 236px;
-    height: 200px;
+    height: auto;
     padding: 10px;
+}
+
+a {
+    color: #014a98ff;
+    font-weight: bold;
+}
+
+a:hover {
+    color: #1185feff;
 }
 
 select {
